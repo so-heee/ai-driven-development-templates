@@ -1,0 +1,78 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm:*)",
+      "Bash(yarn:*)",
+      "Bash(pnpm:*)",
+      "Bash(bun:*)",
+      "Bash(git:*)",
+      "Bash(docker:*)",
+      "Bash(python:*)",
+      "Bash(pip:*)",
+      "Bash(pytest:*)",
+      "Bash(poetry:*)",
+      "Bash(node:*)",
+      "Bash(npx:*)",
+      "Bash(jest:*)",
+      "Bash(vitest:*)",
+      "Bash(cypress:*)",
+      "Bash(playwright:*)",
+      "Bash(eslint:*)",
+      "Bash(prettier:*)",
+      "Bash(tsc:*)",
+      "Bash(go:*)",
+      "Bash(cargo:*)",
+      "Bash(mvn:*)",
+      "Bash(gradle:*)",
+      "Bash(make:*)",
+      "Bash(cmake:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(sed:*)",
+      "Bash(awk:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)"
+    ],
+    "deny": [
+      "Bash(rm:*)",
+      "Bash(sudo:*)",
+      "Bash(su:*)",
+      "Bash(chmod:*)",
+      "Bash(chown:*)"
+    ]
+  },
+  "tools": {
+    "preferred_search": "ripgrep",
+    "max_file_size": "1MB",
+    "ignore_patterns": [
+      "node_modules/",
+      ".git/",
+      "dist/",
+      "build/",
+      "target/",
+      "__pycache__/",
+      ".pytest_cache/",
+      "*.pyc",
+      ".next/",
+      ".nuxt/",
+      "coverage/",
+      ".nyc_output/",
+      "*.log"
+    ]
+  },
+  "code_generation": {
+    "style": "modern",
+    "prefer_const": true,
+    "use_typescript": "auto_detect",
+    "test_framework": "auto_detect",
+    "documentation_style": "comprehensive"
+  },
+  "workflow": {
+    "auto_format": true,
+    "run_tests_before_commit": false,
+    "prefer_small_commits": true,
+    "create_descriptive_commit_messages": true
+  }
+}

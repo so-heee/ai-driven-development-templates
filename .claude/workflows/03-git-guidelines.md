@@ -4,6 +4,15 @@
 
 ## ブランチ戦略
 
+### 基本原則
+
+**ファイル修正前に必ずユーザーにブランチ作成を指示する**
+
+- ファイル修正依頼を受けた際は、作業前にブランチ作成をユーザーに要求
+- mainブランチでの直接ファイル修正は禁止
+- ユーザーがブランチ作成を完了してから作業開始
+- すべての変更作業は専用ブランチで実施
+
 ### ブランチ命名規則
 
 [Conventional Branch](https://conventional-branch.github.io/)に従います：
@@ -16,9 +25,14 @@
 ### ブランチ作成手順
 
 ```bash
+# 1. mainブランチに移動
 git checkout main
 git pull origin main
+
+# 2. 作業ブランチ作成（ファイル修正前に必須）
 git checkout -b feature/example-add-new-template
+
+# 3. この時点でファイル編集開始
 ```
 
 ## コミットメッセージ
@@ -52,6 +66,7 @@ git checkout -b feature/example-add-new-template
 このリポジトリではlefthookによるGitフック自動化を実装：
 
 #### pre-commitフック
+
 2段階処理でMarkdown品質を確保：
 
 1. **prettier**: Markdownファイルの自動フォーマット
@@ -63,16 +78,17 @@ pre-commit:
   parallel: false
   commands:
     markdown-format:
-      glob: "*.md"
+      glob: '*.md'
       run: npx prettier --write {staged_files}
       stage_fixed: true
     markdown-lint:
-      glob: "*.md"
+      glob: '*.md'
       run: npx markdownlint-cli2 {staged_files}
       stage_fixed: true
 ```
 
 #### commit-msgフック
+
 Conventional Commits形式の自動検証
 
 ### markdownlint-cli2設定
@@ -83,11 +99,11 @@ Conventional Commits形式の自動検証
 {
   "config": {
     "default": true,
-    "MD013": false,  // 行長制限なし
-    "MD031": { "list_items": false },  // リスト内コードブロック緩和
-    "MD033": false,  // インラインHTML許可
-    "MD041": false   // H1必須要件緩和
-  }
+    "MD013": false, // 行長制限なし
+    "MD031": { "list_items": false }, // リスト内コードブロック緩和
+    "MD033": false, // インラインHTML許可
+    "MD041": false, // H1必須要件緩和
+  },
 }
 ```
 
@@ -138,6 +154,8 @@ gh pr create --draft --title "title" --body "body"
 
 ### 絶対禁止
 
+- **ブランチ作成指示なしでのファイル修正**: ユーザーにブランチ作成を指示せずにファイル変更作業を開始すること
+- **mainブランチでの直接ファイル修正**: ブランチ作成前にmainで変更作業を行うこと
 - **指示なしでのGit操作**: ユーザーからの明確な指示なしにGit操作（commit、push、PR作成等）を実行すること
 - **node_modules/のコミット**: 依存関係ファイルのバージョン管理対象化
 - **個人設定ファイルのコミット**: `.claude/settings.local.json`等の個人設定
@@ -152,10 +170,26 @@ gh pr create --draft --title "title" --body "body"
 
 ### 標準開発フロー
 
+#### ステップ1: ブランチ作成指示（ユーザーに要求）
+
+ファイル修正依頼を受けた場合、まずユーザーに以下を指示：
+
 ```bash
-# 1. ブランチ作成・開発
+# まず以下のコマンドでブランチを作成してください：
+git checkout main
+git pull origin main
 git checkout -b feature/new-template
-# ファイル編集
+```
+
+#### ステップ2: ブランチ作成確認後の作業開始
+
+ユーザーがブランチ作成を完了したことを確認してから：
+
+```bash
+# ユーザーがブランチ作成完了後、以下の作業を実行：
+
+# 1. ファイル編集作業
+# ファイル修正開始
 
 # 2. 品質チェック
 npm run fix:md

@@ -1,6 +1,7 @@
 # Go エラーハンドリング
 
 ## カスタムエラー
+
 ```go
 type AppError struct {
     Code    string `json:"code"`
@@ -26,6 +27,7 @@ var (
 ```
 
 ## エラーラッピング
+
 ```go
 import "fmt"
 
@@ -42,7 +44,7 @@ func handleError(err error) {
     if errors.Is(err, ErrUserNotFound) {
         // 特定エラー処理
     }
-    
+
     var appErr *AppError
     if errors.As(err, &appErr) {
         // カスタムエラー処理
@@ -51,14 +53,15 @@ func handleError(err error) {
 ```
 
 ## Ginでのエラーハンドリング
+
 ```go
 func errorHandler() gin.HandlerFunc {
     return func(c *gin.Context) {
         c.Next()
-        
+
         if len(c.Errors) > 0 {
             err := c.Errors.Last()
-            
+
             if appErr, ok := err.Err.(*AppError); ok {
                 c.JSON(http.StatusBadRequest, gin.H{
                     "success": false,
@@ -66,7 +69,7 @@ func errorHandler() gin.HandlerFunc {
                 })
                 return
             }
-            
+
             c.JSON(http.StatusInternalServerError, gin.H{
                 "success": false,
                 "error":   "Internal server error",

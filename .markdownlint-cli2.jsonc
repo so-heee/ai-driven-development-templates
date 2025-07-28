@@ -1,0 +1,74 @@
+{
+  // markdownlint-cli2 configuration for AI-driven development documentation
+  "config": {
+    // デフォルトルールを有効化
+    "default": true,
+    
+    // 行の長さ制限を無効化（技術ドキュメントでは長い行が必要な場合が多い）
+    "MD013": false,
+    
+    // インラインHTMLを許可（必要に応じてHTMLタグを使用する場合がある）
+    "MD033": false,
+    
+    // リンク参照スタイルの設定（裸のURLを許可）
+    "MD034": false,
+    
+    // 強調を見出しとして使用することを許可（既存の構造に合わせる）
+    "MD036": false,
+    
+    // コードブロックの言語指定を任意にする
+    "MD040": false,
+    
+    // 最初の行がH1見出しでなくても良い（コマンドファイル等で使用）
+    "MD041": false,
+    
+    // 重複見出しを許可（テンプレートファイルでは同じ見出しが複数必要な場合がある）
+    "MD024": false,
+    
+    // リスト項目のインデントスタイルを統一
+    "MD007": {
+      "indent": 2
+    },
+    
+    // 見出し前後の空行を強制（prettierで自動整形されるため有効化）
+    "MD022": {
+      "lines_above": 1,
+      "lines_below": 1
+    },
+    
+    // コードブロック前後の空行を強制（リスト内では緩和）
+    "MD031": {
+      "list_items": false
+    },
+    
+    // リスト前後の空行を強制（prettierで自動整形されるため有効化）
+    "MD032": true,
+    
+    // コードブロックのスタイルを統一
+    "MD046": {
+      "style": "fenced"
+    },
+    
+    // ファイル末尾の改行を強制（prettierで自動整形されるため有効化）
+    "MD047": true,
+    
+    // 強調記法のスタイル統一
+    "MD049": {
+      "style": "asterisk"
+    }
+  },
+  
+  // 除外するファイル・ディレクトリ
+  "ignores": [
+    "node_modules/**",
+    ".git/**",
+    "package-lock.json"
+  ],
+  
+  // 出力形式の設定
+  "outputFormatters": [
+    [
+      "markdownlint-cli2-formatter-default"
+    ]
+  ]
+}

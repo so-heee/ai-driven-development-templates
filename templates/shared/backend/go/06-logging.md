@@ -1,6 +1,7 @@
 # Go ログ実装
 
 ## 構造化ログ（logrus）
+
 ```go
 import "github.com/sirupsen/logrus"
 
@@ -15,23 +16,24 @@ func logWithFields() {
         "request_id": "req-456",
         "action":     "create_user",
     })
-    
+
     logger.Info("User created successfully")
     logger.Error("Failed to create user")
 }
 ```
 
 ## Zap（高性能ログ）
+
 ```go
 import "go.uber.org/zap"
 
 func setupZap() *zap.Logger {
     config := zap.NewProductionConfig()
     config.OutputPaths = []string{"stdout", "/var/log/app.log"}
-    
+
     logger, _ := config.Build()
     defer logger.Sync()
-    
+
     return logger
 }
 
@@ -45,6 +47,7 @@ func logWithZap(logger *zap.Logger) {
 ```
 
 ## コンテキストログ
+
 ```go
 type Logger struct {
     *zap.Logger

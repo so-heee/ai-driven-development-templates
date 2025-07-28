@@ -1,10 +1,10 @@
 ---
-description:要件定義書を元にClaudeCodeに開発タスクを依頼する 
+description:要件定義書を元にClaudeCodeに開発タスクを依頼する
 ---
 
 ## Context
 
-- Requirements Number($ARGUMENTS_<機能名>_<YYYYMMDD>.md): $ARGUMENTS
+- Requirements Number($ARGUMENTS*<機能名>*<YYYYMMDD>.md): $ARGUMENTS
 - Guidelines: @docs/requirements/README.md
 
 ## Your Task

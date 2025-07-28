@@ -14,6 +14,7 @@ Claude Code (claude.ai/code) での開発効率を大幅に向上させるテン
 **使用方法・活用例・詳細な構成については [CLAUDE.md](CLAUDE.md) をご確認ください。**
 
 このリポジトリには以下が含まれています：
+
 - `templates/` - 再利用可能なテンプレート集（docs・shared・project）
 - `claude-templates/` - Claude固有設定テンプレート
 - `.claude/` - このリポジトリ自体の管理ドキュメント
@@ -21,6 +22,7 @@ Claude Code (claude.ai/code) での開発効率を大幅に向上させるテン
 ## 関連ドキュメント
 
 詳細な設計思想・実践ガイドは以下を参照：
+
 - **[概要](.claude/context/01-overview.md)** - 設計思想・解決課題・主な特徴
 - **[ディレクトリ構造](.claude/context/02-directory-structure.md)** - 構造の全体像と各ディレクトリの役割
 - **[Claude Code実践ガイド](.claude/context/03-claudecode-getting-started.md)** - 新規プロジェクト開始から実践的活用まで

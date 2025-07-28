@@ -3,6 +3,7 @@
 ## パフォーマンス測定・監視
 
 ### Core Web Vitals
+
 ```typescript
 // Web Vitals の測定
 import { getCLS, getFID, getFCP, getLCP, getTTFB } from 'web-vitals';
@@ -15,7 +16,7 @@ const sendToAnalytics = (metric: Metric) => {
     event_label: metric.id,
     non_interaction: true,
   });
-  
+
   // カスタム分析サービスに送信
   analytics.track('performance', {
     metric: metric.name,
@@ -40,19 +41,19 @@ const measureCustomMetric = (name: string, fn: () => void) => {
   const start = performance.now();
   fn();
   const end = performance.now();
-  
+
   // Performance Timeline API を使用
   performance.mark(`${name}-start`);
   performance.mark(`${name}-end`);
   performance.measure(name, `${name}-start`, `${name}-end`);
-  
+
   console.log(`${name}: ${end - start}ms`);
 };
 
 // React の Profiler API
-const ProfilerWrapper: React.FC<{ id: string; children: React.ReactNode }> = ({ 
-  id, 
-  children 
+const ProfilerWrapper: React.FC<{ id: string; children: React.ReactNode }> = ({
+  id,
+  children
 }) => (
   <Profiler
     id={id}
@@ -66,7 +67,7 @@ const ProfilerWrapper: React.FC<{ id: string; children: React.ReactNode }> = ({
         startTime,
         commitTime,
       });
-      
+
       // 分析サービスに送信
       if (actualDuration > 50) { // 50ms以上のレンダリングをトラッキング
         analytics.track('slow-render', {
@@ -84,47 +85,48 @@ const ProfilerWrapper: React.FC<{ id: string; children: React.ReactNode }> = ({
 ```
 
 ### パフォーマンス監視ダッシュボード
+
 ```typescript
 // リアルタイム パフォーマンス監視
 class PerformanceMonitor {
   private metrics: Map<string, number[]> = new Map();
   private observer: PerformanceObserver;
-  
+
   constructor() {
     this.observer = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
         this.recordMetric(entry.name, entry.duration);
       }
     });
-    
+
     this.observer.observe({ entryTypes: ['measure', 'navigation', 'paint'] });
   }
-  
+
   recordMetric(name: string, value: number) {
     if (!this.metrics.has(name)) {
       this.metrics.set(name, []);
     }
     this.metrics.get(name)!.push(value);
-    
+
     // 異常値の検出
     if (this.isAnomalous(name, value)) {
       this.reportAnomaly(name, value);
     }
   }
-  
+
   private isAnomalous(name: string, value: number): boolean {
     const values = this.metrics.get(name) || [];
     if (values.length < 10) return false;
-    
+
     const avg = values.reduce((a, b) => a + b, 0) / values.length;
     const threshold = avg * 2; // 平均の2倍を異常値とする
-    
+
     return value > threshold;
   }
-  
+
   private reportAnomaly(name: string, value: number) {
     console.warn(`Performance anomaly detected: ${name} = ${value}ms`);
-    
+
     // アラート送信
     fetch('/api/performance/alert', {
       method: 'POST',
@@ -138,10 +140,10 @@ class PerformanceMonitor {
       }),
     });
   }
-  
+
   getMetrics() {
     const summary: Record<string, { avg: number; max: number; min: number }> = {};
-    
+
     for (const [name, values] of this.metrics.entries()) {
       if (values.length > 0) {
         summary[name] = {
@@ -151,7 +153,7 @@ class PerformanceMonitor {
         };
       }
     }
-    
+
     return summary;
   }
 }
@@ -166,10 +168,10 @@ const App: React.FC = () => {
       const metrics = performanceMonitor.getMetrics();
       analytics.track('performance-summary', metrics);
     }, 60000); // 1分ごと
-    
+
     return () => clearInterval(interval);
   }, []);
-  
+
   return (
     <ProfilerWrapper id="App">
       <Router>
@@ -185,6 +187,7 @@ const App: React.FC = () => {
 ## バンドル最適化
 
 ### コード分割（Code Splitting）
+
 ```typescript
 // ルートレベルでの分割
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
@@ -202,7 +205,7 @@ const App: React.FC = () => (
 );
 
 // コンポーネントレベルでの分割
-const HeavyChart = React.lazy(() => 
+const HeavyChart = React.lazy(() =>
   import('./components/HeavyChart').then(module => ({
     default: module.HeavyChart
   }))
@@ -210,7 +213,7 @@ const HeavyChart = React.lazy(() =>
 
 const DataVisualization: React.FC = () => {
   const [showChart, setShowChart] = useState(false);
-  
+
   return (
     <div>
       <button onClick={() => setShowChart(true)}>
@@ -233,47 +236,48 @@ const ConditionalImport: React.FC = () => {
       // 機能を使用
     }
   };
-  
+
   return <button onClick={handleFeatureActivation}>高度な機能</button>;
 };
 
 // ライブラリの動的インポート
 const DatePicker: React.FC = () => {
   const [DatePickerLib, setDatePickerLib] = useState<any>(null);
-  
+
   useEffect(() => {
     const loadDatePicker = async () => {
       const { default: ReactDatePicker } = await import('react-datepicker');
       await import('react-datepicker/dist/react-datepicker.css');
       setDatePickerLib(() => ReactDatePicker);
     };
-    
+
     loadDatePicker();
   }, []);
-  
+
   if (!DatePickerLib) return <div>読み込み中...</div>;
-  
+
   return <DatePickerLib selected={new Date()} onChange={() => {}} />;
 };
 ```
 
 ### Tree Shaking最適化
+
 ```typescript
 // ❌ 悪い例：ライブラリ全体をインポート
-import * as _ from 'lodash';
-import { Button, Input, Select, Table } from 'antd';
+import * as _ from 'lodash'
+import { Button, Input, Select, Table } from 'antd'
 
 // ✅ 良い例：必要な関数のみインポート
-import debounce from 'lodash/debounce';
-import isEqual from 'lodash/isEqual';
+import debounce from 'lodash/debounce'
+import isEqual from 'lodash/isEqual'
 
 // ES6 modules の適切な使用
-export { Button } from './Button';
-export { Input } from './Input';
-export { Select } from './Select';
+export { Button } from './Button'
+export { Input } from './Input'
+export { Select } from './Select'
 
 // Instead of
-export * from './components'; // すべてバンドルに含まれる
+export * from './components' // すべてバンドルに含まれる
 
 // webpack での最適化設定
 // webpack.config.js
@@ -298,7 +302,7 @@ module.exports = {
       },
     },
   },
-};
+}
 
 // Vite での最適化
 // vite.config.ts
@@ -314,10 +318,11 @@ export default defineConfig({
       },
     },
   },
-});
+})
 ```
 
 ### バンドルサイズ分析
+
 ```typescript
 // webpack-bundle-analyzer の使用
 // package.json
@@ -338,13 +343,13 @@ const BUNDLE_SIZE_LIMITS = {
 const checkBundleSize = () => {
   const buildDir = './dist';
   const files = fs.readdirSync(buildDir);
-  
+
   for (const file of files) {
     if (file.endsWith('.js')) {
       const filePath = path.join(buildDir, file);
       const stats = fs.statSync(filePath);
       const sizeInBytes = stats.size;
-      
+
       let limit;
       if (file.includes('vendor')) {
         limit = BUNDLE_SIZE_LIMITS.vendor;
@@ -353,7 +358,7 @@ const checkBundleSize = () => {
       } else {
         limit = BUNDLE_SIZE_LIMITS.chunk;
       }
-      
+
       if (sizeInBytes > limit) {
         console.error(`Bundle size exceeded: ${file} (${sizeInBytes} > ${limit})`);
         process.exit(1);
@@ -366,6 +371,7 @@ const checkBundleSize = () => {
 ## レンダリング最適化
 
 ### React最適化パターン
+
 ```typescript
 // React.memo での不要な再レンダリング防止
 const ExpensiveComponent = React.memo<{
@@ -373,7 +379,7 @@ const ExpensiveComponent = React.memo<{
   onUpdate: (data: ComplexData) => void;
 }>(({ data, onUpdate }) => {
   console.log('ExpensiveComponent rendering');
-  
+
   return (
     <div>
       {/* 複雑なレンダリング処理 */}
@@ -401,7 +407,7 @@ const DataProcessor: React.FC<{ rawData: RawData[] }> = ({ rawData }) => {
       }))
       .sort((a, b) => b.priority - a.priority);
   }, [rawData]);
-  
+
   // 派生データもメモ化
   const statistics = useMemo(() => ({
     total: processedData.length,
@@ -409,7 +415,7 @@ const DataProcessor: React.FC<{ rawData: RawData[] }> = ({ rawData }) => {
     max: Math.max(...processedData.map(item => item.value)),
     min: Math.min(...processedData.map(item => item.value)),
   }), [processedData]);
-  
+
   return (
     <div>
       <DataStatistics stats={statistics} />
@@ -421,7 +427,7 @@ const DataProcessor: React.FC<{ rawData: RawData[] }> = ({ rawData }) => {
 // useCallback でのイベントハンドラーメモ化
 const OptimizedList: React.FC<{ items: Item[] }> = ({ items }) => {
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
-  
+
   const handleItemSelect = useCallback((itemId: string) => {
     setSelectedItems(prev => {
       const newSet = new Set(prev);
@@ -433,15 +439,15 @@ const OptimizedList: React.FC<{ items: Item[] }> = ({ items }) => {
       return newSet;
     });
   }, []);
-  
+
   const handleSelectAll = useCallback(() => {
     setSelectedItems(new Set(items.map(item => item.id)));
   }, [items]);
-  
+
   const handleClearSelection = useCallback(() => {
     setSelectedItems(new Set());
   }, []);
-  
+
   return (
     <div>
       <div>
@@ -462,6 +468,7 @@ const OptimizedList: React.FC<{ items: Item[] }> = ({ items }) => {
 ```
 
 ### 仮想化（Virtualization）
+
 ```typescript
 // react-window を使用した大量データの効率的な表示
 import { FixedSizeList as List } from 'react-window';
@@ -472,17 +479,17 @@ interface VirtualizedListProps {
   itemHeight: number;
 }
 
-const VirtualizedList: React.FC<VirtualizedListProps> = ({ 
-  items, 
-  height, 
-  itemHeight 
+const VirtualizedList: React.FC<VirtualizedListProps> = ({
+  items,
+  height,
+  itemHeight
 }) => {
   const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => (
     <div style={style}>
       <ItemComponent item={items[index]} />
     </div>
   );
-  
+
   return (
     <List
       height={height}
@@ -501,14 +508,14 @@ import { VariableSizeList as List } from 'react-window';
 const DynamicVirtualizedList: React.FC<{ items: Item[] }> = ({ items }) => {
   const listRef = useRef<List>(null);
   const rowHeights = useRef<Record<number, number>>({});
-  
+
   const getItemSize = (index: number) => {
     return rowHeights.current[index] || 50; // デフォルト高さ
   };
-  
+
   const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
     const rowRef = useRef<HTMLDivElement>(null);
-    
+
     useEffect(() => {
       if (rowRef.current) {
         const height = rowRef.current.getBoundingClientRect().height;
@@ -518,7 +525,7 @@ const DynamicVirtualizedList: React.FC<{ items: Item[] }> = ({ items }) => {
         }
       }
     });
-    
+
     return (
       <div style={style}>
         <div ref={rowRef}>
@@ -527,7 +534,7 @@ const DynamicVirtualizedList: React.FC<{ items: Item[] }> = ({ items }) => {
       </div>
     );
   };
-  
+
   return (
     <List
       ref={listRef}
@@ -548,7 +555,7 @@ const InfiniteVirtualizedList: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [isNextPageLoading, setIsNextPageLoading] = useState(false);
-  
+
   const loadNextPage = useCallback(async () => {
     setIsNextPageLoading(true);
     try {
@@ -559,12 +566,12 @@ const InfiniteVirtualizedList: React.FC = () => {
       setIsNextPageLoading(false);
     }
   }, [items.length]);
-  
+
   const isItemLoaded = (index: number) => !!items[index];
-  
+
   const Item = ({ index, style }: { index: number; style: React.CSSProperties }) => {
     const item = items[index];
-    
+
     return (
       <div style={style}>
         {item ? (
@@ -575,7 +582,7 @@ const InfiniteVirtualizedList: React.FC = () => {
       </div>
     );
   };
-  
+
   return (
     <InfiniteLoader
       isItemLoaded={isItemLoaded}
@@ -602,6 +609,7 @@ const InfiniteVirtualizedList: React.FC = () => {
 ## 画像・メディア最適化
 
 ### 次世代フォーマット対応
+
 ```typescript
 // 複数フォーマット対応の画像コンポーネント
 interface OptimizedImageProps {
@@ -613,16 +621,16 @@ interface OptimizedImageProps {
   loading?: 'lazy' | 'eager';
 }
 
-const OptimizedImage: React.FC<OptimizedImageProps> = ({ 
-  src, 
-  alt, 
-  width, 
-  height, 
+const OptimizedImage: React.FC<OptimizedImageProps> = ({
+  src,
+  alt,
+  width,
+  height,
   className,
   loading = 'lazy'
 }) => {
   const [imageFormat, setImageFormat] = useState<'webp' | 'avif' | 'jpg'>('jpg');
-  
+
   useEffect(() => {
     // ブラウザサポート確認
     const checkWebPSupport = () => {
@@ -631,26 +639,26 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       canvas.height = 1;
       return canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
     };
-    
+
     const checkAVIFSupport = () => {
       const canvas = document.createElement('canvas');
       canvas.width = 1;
       canvas.height = 1;
       return canvas.toDataURL('image/avif').indexOf('data:image/avif') === 0;
     };
-    
+
     if (checkAVIFSupport()) {
       setImageFormat('avif');
     } else if (checkWebPSupport()) {
       setImageFormat('webp');
     }
   }, []);
-  
+
   const getOptimizedSrc = (originalSrc: string, format: string) => {
     const ext = originalSrc.split('.').pop();
     return originalSrc.replace(`.${ext}`, `.${format}`);
   };
-  
+
   return (
     <picture>
       <source srcSet={getOptimizedSrc(src, 'avif')} type="image/avif" />
@@ -680,7 +688,7 @@ const ResponsiveImage: React.FC<{
       .map(size => `${baseSrc}?w=${size} ${size}w`)
       .join(', ');
   };
-  
+
   return (
     <img
       src={src}
@@ -695,12 +703,13 @@ const ResponsiveImage: React.FC<{
 ```
 
 ### 遅延読み込み（Lazy Loading）
+
 ```typescript
 // Intersection Observer を使用した遅延読み込み
 const useLazyLoad = (threshold = 0.1) => {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef<HTMLElement>(null);
-  
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -711,14 +720,14 @@ const useLazyLoad = (threshold = 0.1) => {
       },
       { threshold }
     );
-    
+
     if (ref.current) {
       observer.observe(ref.current);
     }
-    
+
     return () => observer.disconnect();
   }, [threshold]);
-  
+
   return { ref, isVisible };
 };
 
@@ -729,7 +738,7 @@ const LazyImage: React.FC<{
 }> = ({ src, alt, placeholder = '/placeholder.jpg' }) => {
   const { ref, isVisible } = useLazyLoad();
   const [loaded, setLoaded] = useState(false);
-  
+
   return (
     <div ref={ref} className="lazy-image-container">
       {isVisible && (
@@ -759,7 +768,7 @@ const ProgressiveImage: React.FC<{
 }> = ({ lowQualitySrc, highQualitySrc, alt }) => {
   const [isHighQualityLoaded, setIsHighQualityLoaded] = useState(false);
   const { ref, isVisible } = useLazyLoad();
-  
+
   useEffect(() => {
     if (isVisible) {
       const img = new Image();
@@ -767,7 +776,7 @@ const ProgressiveImage: React.FC<{
       img.src = highQualitySrc;
     }
   }, [isVisible, highQualitySrc]);
-  
+
   return (
     <div ref={ref} className="progressive-image">
       <img
@@ -790,202 +799,193 @@ const ProgressiveImage: React.FC<{
 ## ネットワーク最適化
 
 ### Service Worker でのキャッシュ戦略
+
 ```typescript
 // sw.ts (Service Worker)
-const CACHE_NAME = 'app-cache-v1';
-const STATIC_CACHE = 'static-cache-v1';
-const DYNAMIC_CACHE = 'dynamic-cache-v1';
+const CACHE_NAME = 'app-cache-v1'
+const STATIC_CACHE = 'static-cache-v1'
+const DYNAMIC_CACHE = 'dynamic-cache-v1'
 
-const STATIC_ASSETS = [
-  '/',
-  '/static/css/main.css',
-  '/static/js/main.js',
-  '/manifest.json',
-  '/offline.html'
-];
+const STATIC_ASSETS = ['/', '/static/css/main.css', '/static/js/main.js', '/manifest.json', '/offline.html']
 
 // インストール時
-self.addEventListener('install', (event) => {
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(STATIC_CACHE)
+    caches
+      .open(STATIC_CACHE)
       .then(cache => cache.addAll(STATIC_ASSETS))
       .then(() => self.skipWaiting())
-  );
-});
+  )
+})
 
 // フェッチ時のキャッシュ戦略
-self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  const url = new URL(request.url);
-  
+self.addEventListener('fetch', event => {
+  const { request } = event
+  const url = new URL(request.url)
+
   // HTML ファイル: Network First
   if (request.headers.get('accept')?.includes('text/html')) {
     event.respondWith(
       fetch(request)
         .then(response => {
-          const responseClone = response.clone();
-          caches.open(DYNAMIC_CACHE)
-            .then(cache => cache.put(request, responseClone));
-          return response;
+          const responseClone = response.clone()
+          caches.open(DYNAMIC_CACHE).then(cache => cache.put(request, responseClone))
+          return response
         })
         .catch(() => {
-          return caches.match(request)
-            .then(response => response || caches.match('/offline.html'));
+          return caches.match(request).then(response => response || caches.match('/offline.html'))
         })
-    );
+    )
   }
-  
+
   // 静的アセット: Cache First
   else if (url.pathname.startsWith('/static/')) {
     event.respondWith(
-      caches.match(request)
-        .then(response => {
-          return response || fetch(request)
-            .then(fetchResponse => {
-              const responseClone = fetchResponse.clone();
-              caches.open(STATIC_CACHE)
-                .then(cache => cache.put(request, responseClone));
-              return fetchResponse;
-            });
-        })
-    );
+      caches.match(request).then(response => {
+        return (
+          response ||
+          fetch(request).then(fetchResponse => {
+            const responseClone = fetchResponse.clone()
+            caches.open(STATIC_CACHE).then(cache => cache.put(request, responseClone))
+            return fetchResponse
+          })
+        )
+      })
+    )
   }
-  
+
   // API: Network First with timeout
   else if (url.pathname.startsWith('/api/')) {
     event.respondWith(
-      Promise.race([
-        fetch(request),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('timeout')), 3000)
-        )
-      ])
-      .then(response => {
-        if (response.ok) {
-          const responseClone = response.clone();
-          caches.open(DYNAMIC_CACHE)
-            .then(cache => cache.put(request, responseClone));
-        }
-        return response;
-      })
-      .catch(() => caches.match(request))
-    );
+      Promise.race([fetch(request), new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))])
+        .then(response => {
+          if (response.ok) {
+            const responseClone = response.clone()
+            caches.open(DYNAMIC_CACHE).then(cache => cache.put(request, responseClone))
+          }
+          return response
+        })
+        .catch(() => caches.match(request))
+    )
   }
-});
+})
 
 // React での Service Worker 登録
 const registerServiceWorker = () => {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
+      navigator.serviceWorker
+        .register('/sw.js')
         .then(registration => {
-          console.log('SW registered: ', registration);
-          
+          console.log('SW registered: ', registration)
+
           // 更新チェック
           registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing;
+            const newWorker = registration.installing
             newWorker?.addEventListener('statechange', () => {
               if (newWorker.state === 'installed') {
                 if (navigator.serviceWorker.controller) {
                   // 新しいバージョンが利用可能
-                  showUpdateNotification();
+                  showUpdateNotification()
                 }
               }
-            });
-          });
+            })
+          })
         })
         .catch(registrationError => {
-          console.log('SW registration failed: ', registrationError);
-        });
-    });
+          console.log('SW registration failed: ', registrationError)
+        })
+    })
   }
-};
+}
 ```
 
 ### リソースの優先度付け
+
 ```typescript
 // Critical Resources の優先読み込み
 const CriticalResourceLoader: React.FC = () => {
   useEffect(() => {
     // 重要なフォントのプリロード
-    const fontLink = document.createElement('link');
-    fontLink.rel = 'preload';
-    fontLink.href = '/fonts/inter.woff2';
-    fontLink.as = 'font';
-    fontLink.type = 'font/woff2';
-    fontLink.crossOrigin = 'anonymous';
-    document.head.appendChild(fontLink);
-    
+    const fontLink = document.createElement('link')
+    fontLink.rel = 'preload'
+    fontLink.href = '/fonts/inter.woff2'
+    fontLink.as = 'font'
+    fontLink.type = 'font/woff2'
+    fontLink.crossOrigin = 'anonymous'
+    document.head.appendChild(fontLink)
+
     // 重要な画像のプリロード
-    const heroImageLink = document.createElement('link');
-    heroImageLink.rel = 'preload';
-    heroImageLink.href = '/images/hero.webp';
-    heroImageLink.as = 'image';
-    document.head.appendChild(heroImageLink);
-    
+    const heroImageLink = document.createElement('link')
+    heroImageLink.rel = 'preload'
+    heroImageLink.href = '/images/hero.webp'
+    heroImageLink.as = 'image'
+    document.head.appendChild(heroImageLink)
+
     // 次のページのプリフェッチ
-    const nextPageLink = document.createElement('link');
-    nextPageLink.rel = 'prefetch';
-    nextPageLink.href = '/dashboard';
-    document.head.appendChild(nextPageLink);
-    
+    const nextPageLink = document.createElement('link')
+    nextPageLink.rel = 'prefetch'
+    nextPageLink.href = '/dashboard'
+    document.head.appendChild(nextPageLink)
+
     return () => {
-      document.head.removeChild(fontLink);
-      document.head.removeChild(heroImageLink);
-      document.head.removeChild(nextPageLink);
-    };
-  }, []);
-  
-  return null;
-};
+      document.head.removeChild(fontLink)
+      document.head.removeChild(heroImageLink)
+      document.head.removeChild(nextPageLink)
+    }
+  }, [])
+
+  return null
+}
 
 // 動的な優先度設定
 const usePriorityHints = () => {
   const preloadResource = useCallback((url: string, as: string, priority: 'high' | 'low' = 'high') => {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.href = url;
-    link.as = as;
+    const link = document.createElement('link')
+    link.rel = 'preload'
+    link.href = url
+    link.as = as
     if (priority === 'high') {
-      link.setAttribute('importance', 'high');
+      link.setAttribute('importance', 'high')
     }
-    document.head.appendChild(link);
-    
-    return () => document.head.removeChild(link);
-  }, []);
-  
+    document.head.appendChild(link)
+
+    return () => document.head.removeChild(link)
+  }, [])
+
   const prefetchResource = useCallback((url: string) => {
-    const link = document.createElement('link');
-    link.rel = 'prefetch';
-    link.href = url;
-    document.head.appendChild(link);
-    
-    return () => document.head.removeChild(link);
-  }, []);
-  
-  return { preloadResource, prefetchResource };
-};
+    const link = document.createElement('link')
+    link.rel = 'prefetch'
+    link.href = url
+    document.head.appendChild(link)
+
+    return () => document.head.removeChild(link)
+  }, [])
+
+  return { preloadResource, prefetchResource }
+}
 ```
 
 ## Runtime パフォーマンス最適化
 
 ### Web Workers の活用
+
 ```typescript
 // worker.ts
 self.onmessage = function(e) {
   const { type, data } = e.data;
-  
+
   switch (type) {
     case 'HEAVY_COMPUTATION':
       const result = performHeavyComputation(data);
       self.postMessage({ type: 'COMPUTATION_RESULT', result });
       break;
-      
+
     case 'PROCESS_CSV':
       const processedData = processCsvData(data);
       self.postMessage({ type: 'CSV_PROCESSED', data: processedData });
       break;
-      
+
     case 'IMAGE_PROCESSING':
       const processedImage = processImage(data);
       self.postMessage({ type: 'IMAGE_PROCESSED', image: processedImage });
@@ -1010,41 +1010,41 @@ const useWebWorker = (workerScript: string) => {
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   useEffect(() => {
     worker.current = new Worker(workerScript);
-    
+
     worker.current.onmessage = (e) => {
       setResult(e.data);
       setLoading(false);
     };
-    
+
     worker.current.onerror = (err) => {
       setError(err.message);
       setLoading(false);
     };
-    
+
     return () => worker.current?.terminate();
   }, [workerScript]);
-  
+
   const postMessage = useCallback((message: any) => {
     setLoading(true);
     setError(null);
     worker.current?.postMessage(message);
   }, []);
-  
+
   return { postMessage, result, loading, error };
 };
 
 // 使用例
 const HeavyComputationComponent: React.FC = () => {
   const { postMessage, result, loading } = useWebWorker('/worker.js');
-  
+
   const handleComputation = () => {
     const data = Array.from({ length: 10000 }, () => Math.random() * 100);
     postMessage({ type: 'HEAVY_COMPUTATION', data });
   };
-  
+
   return (
     <div>
       <button onClick={handleComputation} disabled={loading}>
@@ -1057,18 +1057,19 @@ const HeavyComputationComponent: React.FC = () => {
 ```
 
 ### メモリ使用量の最適化
+
 ```typescript
 // メモリリークの防止
 const useMemoryOptimizedEffect = (effect: React.EffectCallback, deps?: React.DependencyList) => {
   useEffect(() => {
     const cleanup = effect();
-    
+
     return () => {
       // 明示的なクリーンアップ
       if (cleanup && typeof cleanup === 'function') {
         cleanup();
       }
-      
+
       // ガベージコレクションのヒント（非標準）
       if ('gc' in window && typeof window.gc === 'function') {
         window.gc();
@@ -1081,17 +1082,17 @@ const useMemoryOptimizedEffect = (effect: React.EffectCallback, deps?: React.Dep
 const useLargeDataset = (data: LargeDataItem[]) => {
   const [processedData, setProcessedData] = useState<ProcessedData[]>([]);
   const processingRef = useRef<boolean>(false);
-  
+
   useEffect(() => {
     if (processingRef.current) return;
-    
+
     processingRef.current = true;
-    
+
     // 分割処理でメインスレッドをブロックしない
     const processInChunks = async () => {
       const chunkSize = 1000;
       const result: ProcessedData[] = [];
-      
+
       for (let i = 0; i < data.length; i += chunkSize) {
         const chunk = data.slice(i, i + chunkSize);
         const processedChunk = await new Promise<ProcessedData[]>(resolve => {
@@ -1099,44 +1100,44 @@ const useLargeDataset = (data: LargeDataItem[]) => {
             resolve(chunk.map(item => processItem(item)));
           }, 0);
         });
-        
+
         result.push(...processedChunk);
-        
+
         // 進捗更新（UIをブロックしない）
         await new Promise(resolve => setTimeout(resolve, 0));
       }
-      
+
       setProcessedData(result);
       processingRef.current = false;
     };
-    
+
     processInChunks();
-    
+
     return () => {
       processingRef.current = false;
       setProcessedData([]);
     };
   }, [data]);
-  
+
   return processedData;
 };
 
 // WeakMap を使用したメモリ効率的なキャッシュ
 class MemoryEfficientCache<K extends object, V> {
   private cache = new WeakMap<K, V>();
-  
+
   get(key: K): V | undefined {
     return this.cache.get(key);
   }
-  
+
   set(key: K, value: V): void {
     this.cache.set(key, value);
   }
-  
+
   has(key: K): boolean {
     return this.cache.has(key);
   }
-  
+
   delete(key: K): boolean {
     return this.cache.delete(key);
   }
@@ -1145,17 +1146,17 @@ class MemoryEfficientCache<K extends object, V> {
 // 使用例
 const useComponentCache = () => {
   const cache = useMemo(() => new MemoryEfficientCache<ComponentProps, JSX.Element>(), []);
-  
+
   const getCachedComponent = useCallback((props: ComponentProps) => {
     if (cache.has(props)) {
       return cache.get(props)!;
     }
-    
+
     const component = <ExpensiveComponent {...props} />;
     cache.set(props, component);
     return component;
   }, [cache]);
-  
+
   return getCachedComponent;
 };
 ```

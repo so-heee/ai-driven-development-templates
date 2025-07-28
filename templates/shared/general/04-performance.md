@@ -3,6 +3,7 @@
 ## フロントエンドパフォーマンス
 
 ### Core Web Vitals 最適化
+
 ```typescript
 // Largest Contentful Paint (LCP) 最適化
 // 画像最適化
@@ -47,6 +48,7 @@ const PreloadCriticalResources = () => {
 ```
 
 ### バンドル最適化
+
 ```typescript
 // 動的インポート（Code Splitting）
 const LazyComponent = lazy(() => import('./HeavyComponent'));
@@ -97,6 +99,7 @@ module.exports = {
 ```
 
 ### レンダリング最適化
+
 ```typescript
 // メモ化の活用
 const ExpensiveComponent = React.memo<{
@@ -176,6 +179,7 @@ const useLazyLoad = (threshold = 0.1) => {
 ## バックエンドパフォーマンス
 
 ### データベース最適化
+
 ```sql
 -- インデックス戦略
 -- 単一カラムインデックス
@@ -197,42 +201,43 @@ SELECT * FROM users;
 SELECT * FROM orders WHERE user_id = ?;
 
 -- 良い例：JOIN使用
-SELECT u.*, o.* 
+SELECT u.*, o.*
 FROM users u
 LEFT JOIN orders o ON u.id = o.user_id;
 
 -- 良い例：サブクエリでの制限
-SELECT u.*, 
+SELECT u.*,
        (SELECT COUNT(*) FROM orders WHERE user_id = u.id) as order_count
 FROM users u
 WHERE u.is_active = true;
 ```
 
 ### キャッシュ戦略
+
 ```typescript
 // Redis でのキャッシュ実装
-import Redis from 'ioredis';
+import Redis from 'ioredis'
 
 class CacheService {
-  private redis: Redis;
+  private redis: Redis
 
   constructor() {
-    this.redis = new Redis(process.env.REDIS_URL);
+    this.redis = new Redis(process.env.REDIS_URL)
   }
 
   async get<T>(key: string): Promise<T | null> {
-    const cached = await this.redis.get(key);
-    return cached ? JSON.parse(cached) : null;
+    const cached = await this.redis.get(key)
+    return cached ? JSON.parse(cached) : null
   }
 
   async set<T>(key: string, value: T, ttl = 3600): Promise<void> {
-    await this.redis.setex(key, ttl, JSON.stringify(value));
+    await this.redis.setex(key, ttl, JSON.stringify(value))
   }
 
   async invalidate(pattern: string): Promise<void> {
-    const keys = await this.redis.keys(pattern);
+    const keys = await this.redis.keys(pattern)
     if (keys.length > 0) {
-      await this.redis.del(...keys);
+      await this.redis.del(...keys)
     }
   }
 }
@@ -240,72 +245,67 @@ class CacheService {
 // キャッシュ装飾子
 function Cache(ttl = 3600) {
   return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
-    const method = descriptor.value;
+    const method = descriptor.value
 
     descriptor.value = async function (...args: any[]) {
-      const cacheKey = `${target.constructor.name}:${propertyName}:${JSON.stringify(args)}`;
-      
-      const cached = await cacheService.get(cacheKey);
+      const cacheKey = `${target.constructor.name}:${propertyName}:${JSON.stringify(args)}`
+
+      const cached = await cacheService.get(cacheKey)
       if (cached) {
-        return cached;
+        return cached
       }
 
-      const result = await method.apply(this, args);
-      await cacheService.set(cacheKey, result, ttl);
-      
-      return result;
-    };
-  };
+      const result = await method.apply(this, args)
+      await cacheService.set(cacheKey, result, ttl)
+
+      return result
+    }
+  }
 }
 
 // 使用例
 class UserService {
   @Cache(1800) // 30分間キャッシュ
   async getUserProfile(userId: string): Promise<UserProfile> {
-    return await this.userRepository.findById(userId);
+    return await this.userRepository.findById(userId)
   }
 }
 ```
 
 ### API最適化
+
 ```typescript
 // ページネーション実装
 interface PaginationOptions {
-  page: number;
-  limit: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  page: number
+  limit: number
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
 }
 
 interface PaginatedResponse<T> {
-  data: T[];
+  data: T[]
   pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+    hasNext: boolean
+    hasPrev: boolean
+  }
 }
 
 class PaginationService {
-  static async paginate<T>(
-    query: any,
-    options: PaginationOptions
-  ): Promise<PaginatedResponse<T>> {
-    const { page, limit, sortBy = 'id', sortOrder = 'asc' } = options;
-    const offset = (page - 1) * limit;
+  static async paginate<T>(query: any, options: PaginationOptions): Promise<PaginatedResponse<T>> {
+    const { page, limit, sortBy = 'id', sortOrder = 'asc' } = options
+    const offset = (page - 1) * limit
 
     const [data, total] = await Promise.all([
-      query
-        .orderBy(sortBy, sortOrder)
-        .limit(limit)
-        .offset(offset),
-      query.clone().count('* as count').first()
-    ]);
+      query.orderBy(sortBy, sortOrder).limit(limit).offset(offset),
+      query.clone().count('* as count').first(),
+    ])
 
-    const totalPages = Math.ceil(total.count / limit);
+    const totalPages = Math.ceil(total.count / limit)
 
     return {
       data,
@@ -317,26 +317,26 @@ class PaginationService {
         hasNext: page < totalPages,
         hasPrev: page > 1,
       },
-    };
+    }
   }
 }
 
 // GraphQL DataLoader でのN+1問題解決
-import DataLoader from 'dataloader';
+import DataLoader from 'dataloader'
 
 class UserLoader {
   private userLoader = new DataLoader(async (userIds: readonly string[]) => {
-    const users = await User.findByIds([...userIds]);
-    const userMap = new Map(users.map(user => [user.id, user]));
-    return userIds.map(id => userMap.get(id));
-  });
+    const users = await User.findByIds([...userIds])
+    const userMap = new Map(users.map(user => [user.id, user]))
+    return userIds.map(id => userMap.get(id))
+  })
 
   async loadUser(id: string): Promise<User | undefined> {
-    return this.userLoader.load(id);
+    return this.userLoader.load(id)
   }
 
   async loadUsers(ids: string[]): Promise<(User | undefined)[]> {
-    return this.userLoader.loadMany(ids);
+    return this.userLoader.loadMany(ids)
   }
 }
 ```
@@ -344,36 +344,37 @@ class UserLoader {
 ## メモリ管理
 
 ### メモリリーク対策
+
 ```typescript
 // イベントリスナーのクリーンアップ
 useEffect(() => {
   const handleScroll = () => {
     // スクロール処理
-  };
+  }
 
   const handleResize = debounce(() => {
     // リサイズ処理
-  }, 100);
+  }, 100)
 
-  window.addEventListener('scroll', handleScroll);
-  window.addEventListener('resize', handleResize);
+  window.addEventListener('scroll', handleScroll)
+  window.addEventListener('resize', handleResize)
 
   return () => {
-    window.removeEventListener('scroll', handleScroll);
-    window.removeEventListener('resize', handleResize);
-  };
-}, []);
+    window.removeEventListener('scroll', handleScroll)
+    window.removeEventListener('resize', handleResize)
+  }
+}, [])
 
 // WeakMap を使った弱参照
 class ComponentRegistry {
-  private registry = new WeakMap<HTMLElement, ComponentInstance>();
+  private registry = new WeakMap<HTMLElement, ComponentInstance>()
 
   register(element: HTMLElement, component: ComponentInstance) {
-    this.registry.set(element, component);
+    this.registry.set(element, component)
   }
 
   get(element: HTMLElement): ComponentInstance | undefined {
-    return this.registry.get(element);
+    return this.registry.get(element)
   }
 
   // elementが削除されると自動的にエントリも削除される
@@ -382,73 +383,75 @@ class ComponentRegistry {
 // メモリプロファイリング
 const profileMemory = () => {
   if ('memory' in performance) {
-    const memory = (performance as any).memory;
+    const memory = (performance as any).memory
     console.log({
       usedJSMemory: `${Math.round(memory.usedJSMemory / 1048576)} MB`,
       totalJSMemory: `${Math.round(memory.totalJSMemory / 1048576)} MB`,
       jsMemoryLimit: `${Math.round(memory.jsMemoryLimit / 1048576)} MB`,
-    });
+    })
   }
-};
+}
 ```
 
 ### オブジェクトプール
+
 ```typescript
 // オブジェクトプールパターン
 class ObjectPool<T> {
-  private pool: T[] = [];
-  private factory: () => T;
-  private reset: (obj: T) => void;
+  private pool: T[] = []
+  private factory: () => T
+  private reset: (obj: T) => void
 
   constructor(factory: () => T, reset: (obj: T) => void, initialSize = 10) {
-    this.factory = factory;
-    this.reset = reset;
-    
+    this.factory = factory
+    this.reset = reset
+
     // 初期オブジェクトの作成
     for (let i = 0; i < initialSize; i++) {
-      this.pool.push(factory());
+      this.pool.push(factory())
     }
   }
 
   acquire(): T {
     if (this.pool.length > 0) {
-      return this.pool.pop()!;
+      return this.pool.pop()!
     }
-    return this.factory();
+    return this.factory()
   }
 
   release(obj: T): void {
-    this.reset(obj);
-    this.pool.push(obj);
+    this.reset(obj)
+    this.pool.push(obj)
   }
 }
 
 // 使用例：DOM要素プール
 const divPool = new ObjectPool(
   () => document.createElement('div'),
-  (div) => {
-    div.innerHTML = '';
-    div.className = '';
-    div.removeAttribute('style');
+  div => {
+    div.innerHTML = ''
+    div.className = ''
+    div.removeAttribute('style')
   }
-);
+)
 
 const createListItem = (text: string) => {
-  const div = divPool.acquire();
-  div.textContent = text;
-  div.className = 'list-item';
-  return div;
-};
+  const div = divPool.acquire()
+  div.textContent = text
+  div.className = 'list-item'
+  return div
+}
 
 const removeListItem = (div: HTMLElement) => {
-  div.remove();
-  divPool.release(div);
-};
+  div.remove()
+  divPool.release(div)
+}
 ```
 
 ## ネットワーク最適化
 
 ### HTTP/2 と HTTP/3 最適化
+
 ```typescript
 // Server Push の実装（HTTP/2）
 app.get('/', (req, res) => {
@@ -457,43 +460,44 @@ app.get('/', (req, res) => {
     response: {
       'content-type': 'text/css',
     },
-  });
-  
+  })
+
   res.push('/js/main.js', {
     response: {
       'content-type': 'application/javascript',
     },
-  });
+  })
 
-  res.render('index');
-});
+  res.render('index')
+})
 
 // リソースヒント
 const ResourceHints: React.FC = () => {
   useEffect(() => {
     // DNS prefetch
-    const dnsPrefetch = document.createElement('link');
-    dnsPrefetch.rel = 'dns-prefetch';
-    dnsPrefetch.href = '//api.example.com';
-    document.head.appendChild(dnsPrefetch);
+    const dnsPrefetch = document.createElement('link')
+    dnsPrefetch.rel = 'dns-prefetch'
+    dnsPrefetch.href = '//api.example.com'
+    document.head.appendChild(dnsPrefetch)
 
     // Preconnect
-    const preconnect = document.createElement('link');
-    preconnect.rel = 'preconnect';
-    preconnect.href = 'https://fonts.googleapis.com';
-    preconnect.crossOrigin = 'anonymous';
-    document.head.appendChild(preconnect);
-  }, []);
+    const preconnect = document.createElement('link')
+    preconnect.rel = 'preconnect'
+    preconnect.href = 'https://fonts.googleapis.com'
+    preconnect.crossOrigin = 'anonymous'
+    document.head.appendChild(preconnect)
+  }, [])
 
-  return null;
-};
+  return null
+}
 ```
 
 ### 圧縮とminification
+
 ```javascript
 // Webpack 圧縮設定
-const CompressionPlugin = require('compression-webpack-plugin');
-const TerserPlugin = require('terser-webpack-plugin');
+const CompressionPlugin = require('compression-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
 
 module.exports = {
   optimization: {
@@ -518,29 +522,32 @@ module.exports = {
       minRatio: 0.8,
     }),
   ],
-};
+}
 
 // Express での圧縮
-const compression = require('compression');
+const compression = require('compression')
 
-app.use(compression({
-  filter: (req, res) => {
-    if (req.headers['x-no-compression']) {
-      return false;
-    }
-    return compression.filter(req, res);
-  },
-  level: 6,
-  threshold: 1024,
-}));
+app.use(
+  compression({
+    filter: (req, res) => {
+      if (req.headers['x-no-compression']) {
+        return false
+      }
+      return compression.filter(req, res)
+    },
+    level: 6,
+    threshold: 1024,
+  })
+)
 ```
 
 ## パフォーマンス監視
 
 ### Real User Monitoring (RUM)
+
 ```typescript
 // Web Vitals 計測
-import { getCLS, getFID, getFCP, getLCP, getTTFB } from 'web-vitals';
+import { getCLS, getFID, getFCP, getLCP, getTTFB } from 'web-vitals'
 
 const vitalsThresholds = {
   CLS: { good: 0.1, needs_improvement: 0.25 },
@@ -548,12 +555,12 @@ const vitalsThresholds = {
   FCP: { good: 1800, needs_improvement: 3000 },
   LCP: { good: 2500, needs_improvement: 4000 },
   TTFB: { good: 800, needs_improvement: 1800 },
-};
+}
 
 const sendToAnalytics = (metric: any) => {
-  const threshold = vitalsThresholds[metric.name as keyof typeof vitalsThresholds];
-  const rating = metric.value <= threshold.good ? 'good' :
-                metric.value <= threshold.needs_improvement ? 'needs_improvement' : 'poor';
+  const threshold = vitalsThresholds[metric.name as keyof typeof vitalsThresholds]
+  const rating =
+    metric.value <= threshold.good ? 'good' : metric.value <= threshold.needs_improvement ? 'needs_improvement' : 'poor'
 
   // Google Analytics への送信
   gtag('event', metric.name, {
@@ -561,7 +568,7 @@ const sendToAnalytics = (metric: any) => {
     event_label: metric.id,
     value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
     custom_map: { rating },
-  });
+  })
 
   // カスタム分析サービスへの送信
   fetch('/api/analytics/vitals', {
@@ -574,67 +581,69 @@ const sendToAnalytics = (metric: any) => {
       url: window.location.href,
       timestamp: Date.now(),
     }),
-  });
-};
+  })
+}
 
 // メトリクス収集の開始
-getCLS(sendToAnalytics);
-getFID(sendToAnalytics);
-getFCP(sendToAnalytics);
-getLCP(sendToAnalytics);
-getTTFB(sendToAnalytics);
+getCLS(sendToAnalytics)
+getFID(sendToAnalytics)
+getFCP(sendToAnalytics)
+getLCP(sendToAnalytics)
+getTTFB(sendToAnalytics)
 ```
 
 ### パフォーマンスプロファイリング
+
 ```typescript
 // カスタムメトリクス計測
 class PerformanceTracker {
-  private marks = new Map<string, number>();
+  private marks = new Map<string, number>()
 
   startTiming(name: string): void {
-    this.marks.set(`${name}-start`, performance.now());
-    performance.mark(`${name}-start`);
+    this.marks.set(`${name}-start`, performance.now())
+    performance.mark(`${name}-start`)
   }
 
   endTiming(name: string): number {
-    const endTime = performance.now();
-    const startTime = this.marks.get(`${name}-start`);
-    
+    const endTime = performance.now()
+    const startTime = this.marks.get(`${name}-start`)
+
     if (!startTime) {
-      console.warn(`No start time found for ${name}`);
-      return 0;
+      console.warn(`No start time found for ${name}`)
+      return 0
     }
 
-    const duration = endTime - startTime;
-    performance.mark(`${name}-end`);
-    performance.measure(name, `${name}-start`, `${name}-end`);
+    const duration = endTime - startTime
+    performance.mark(`${name}-end`)
+    performance.measure(name, `${name}-start`, `${name}-end`)
 
-    this.marks.delete(`${name}-start`);
-    return duration;
+    this.marks.delete(`${name}-start`)
+    return duration
   }
 
   getPerformanceEntries(): PerformanceEntry[] {
-    return performance.getEntriesByType('measure');
+    return performance.getEntriesByType('measure')
   }
 }
 
 // 使用例
-const tracker = new PerformanceTracker();
+const tracker = new PerformanceTracker()
 
-tracker.startTiming('api-call');
-const data = await fetchUserData();
-const apiDuration = tracker.endTiming('api-call');
+tracker.startTiming('api-call')
+const data = await fetchUserData()
+const apiDuration = tracker.endTiming('api-call')
 
-tracker.startTiming('rendering');
-renderComponent(data);
-const renderDuration = tracker.endTiming('rendering');
+tracker.startTiming('rendering')
+renderComponent(data)
+const renderDuration = tracker.endTiming('rendering')
 
-console.log(`API call: ${apiDuration}ms, Rendering: ${renderDuration}ms`);
+console.log(`API call: ${apiDuration}ms, Rendering: ${renderDuration}ms`)
 ```
 
 ## 負荷テスト
 
 ### Artillery.js での負荷テスト
+
 ```yaml
 # load-test.yml
 config:
@@ -685,13 +694,14 @@ scenarios:
 ```
 
 ### K6 での負荷テスト
+
 ```javascript
 // load-test.js
-import http from 'k6/http';
-import { check, sleep } from 'k6';
-import { Rate } from 'k6/metrics';
+import http from 'k6/http'
+import { check, sleep } from 'k6'
+import { Rate } from 'k6/metrics'
 
-const errorRate = new Rate('errors');
+const errorRate = new Rate('errors')
 
 export const options = {
   stages: [
@@ -705,66 +715,68 @@ export const options = {
     http_req_duration: ['p(95)<2000'],
     errors: ['rate<0.1'],
   },
-};
+}
 
 export default function () {
-  const response = http.get('https://api.example.com/users');
-  
-  const result = check(response, {
-    'status is 200': (r) => r.status === 200,
-    'response time < 500ms': (r) => r.timings.duration < 500,
-  });
+  const response = http.get('https://api.example.com/users')
 
-  errorRate.add(!result);
-  sleep(1);
+  const result = check(response, {
+    'status is 200': r => r.status === 200,
+    'response time < 500ms': r => r.timings.duration < 500,
+  })
+
+  errorRate.add(!result)
+  sleep(1)
 }
 ```
 
 ## 最適化のベストプラクティス
 
 ### パフォーマンス予算
+
 ```typescript
 // パフォーマンス予算の定義
 const performanceBudget = {
   // ネットワーク
   totalSize: 2000, // KB
   imageSize: 1000, // KB
-  jsSize: 400,     // KB
-  cssSize: 200,    // KB
-  
+  jsSize: 400, // KB
+  cssSize: 200, // KB
+
   // メトリクス
-  LCP: 2500,       // ms
-  FID: 100,        // ms
-  CLS: 0.1,        // 単位なし
-  
+  LCP: 2500, // ms
+  FID: 100, // ms
+  CLS: 0.1, // 単位なし
+
   // リソース数
   totalRequests: 50,
   domElements: 1500,
-};
+}
 
 // 予算チェック
 const checkPerformanceBudget = async () => {
-  const metrics = await getPerformanceMetrics();
-  const budget = performanceBudget;
-  
-  const violations = [];
-  
+  const metrics = await getPerformanceMetrics()
+  const budget = performanceBudget
+
+  const violations = []
+
   if (metrics.totalSize > budget.totalSize) {
-    violations.push(`Total size: ${metrics.totalSize}KB > ${budget.totalSize}KB`);
+    violations.push(`Total size: ${metrics.totalSize}KB > ${budget.totalSize}KB`)
   }
-  
+
   if (metrics.LCP > budget.LCP) {
-    violations.push(`LCP: ${metrics.LCP}ms > ${budget.LCP}ms`);
+    violations.push(`LCP: ${metrics.LCP}ms > ${budget.LCP}ms`)
   }
-  
+
   if (violations.length > 0) {
-    console.error('Performance budget violations:', violations);
-    throw new Error('Performance budget exceeded');
+    console.error('Performance budget violations:', violations)
+    throw new Error('Performance budget exceeded')
   }
-};
+}
 ```
 
 ### 継続的な最適化
+
 ```typescript
 // パフォーマンス回帰検出
 const performanceRegression = {
@@ -774,25 +786,25 @@ const performanceRegression = {
     CLS: 0.05,
   },
   threshold: 0.1, // 10% の悪化で警告
-  
+
   check(current: any) {
-    const regressions = [];
-    
+    const regressions = []
+
     Object.entries(this.baseline).forEach(([metric, baseline]) => {
-      const currentValue = current[metric];
-      const regression = (currentValue - baseline) / baseline;
-      
+      const currentValue = current[metric]
+      const regression = (currentValue - baseline) / baseline
+
       if (regression > this.threshold) {
         regressions.push({
           metric,
           baseline,
           current: currentValue,
           regression: Math.round(regression * 100),
-        });
+        })
       }
-    });
-    
-    return regressions;
+    })
+
+    return regressions
   },
-};
+}
 ```

@@ -7,7 +7,14 @@
       "Bash(mv:*)",
       "Bash(rm:*)",
       "Bash(tree:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git checkout -b feature/coding-guidelines-add-coding-guidelines-for-go-typescript)",
+      "Bash(git add:*)",
+      "Bash(npm install:*)",
+      "Bash(lefthook:*)",
+      "Bash(npm run lint:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }

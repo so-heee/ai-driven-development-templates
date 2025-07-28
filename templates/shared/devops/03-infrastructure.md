@@ -3,6 +3,7 @@
 ## Terraform パターン
 
 ### 基本的なプロジェクト構造
+
 ```
 terraform/
 ├── environments/
@@ -23,13 +24,14 @@ terraform/
 ```
 
 ### モジュール設計パターン
+
 ```hcl
 # modules/vpc/main.tf
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support   = true
-  
+
   tags = merge(var.common_tags, {
     Name = "${var.project_name}-vpc"
   })
@@ -37,12 +39,12 @@ resource "aws_vpc" "main" {
 
 resource "aws_subnet" "public" {
   count = length(var.public_subnet_cidrs)
-  
+
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.public_subnet_cidrs[count.index]
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = true
-  
+
   tags = merge(var.common_tags, {
     Name = "${var.project_name}-public-${count.index + 1}"
     Type = "Public"
@@ -75,6 +77,7 @@ variable "common_tags" {
 ```
 
 ### 環境別設定
+
 ```hcl
 # environments/production/main.tf
 terraform {
@@ -87,11 +90,11 @@ terraform {
 
 module "vpc" {
   source = "../../modules/vpc"
-  
+
   project_name         = var.project_name
   vpc_cidr            = "10.0.0.0/16"
   public_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24"]
-  
+
   common_tags = {
     Environment = "production"
     Project     = var.project_name
@@ -101,11 +104,11 @@ module "vpc" {
 
 module "application" {
   source = "../../modules/ecs"
-  
+
   vpc_id           = module.vpc.vpc_id
   subnet_ids       = module.vpc.public_subnet_ids
   desired_capacity = 3
-  
+
   common_tags = local.common_tags
 }
 ```
@@ -113,16 +116,17 @@ module "application" {
 ## AWS CDK パターン
 
 ### TypeScript CDK スタック
+
 ```typescript
-import * as cdk from 'aws-cdk-lib';
-import * as ec2 from 'aws-cdk-lib/aws-ec2';
-import * as ecs from 'aws-cdk-lib/aws-ecs';
-import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
-import { Construct } from 'constructs';
+import * as cdk from 'aws-cdk-lib'
+import * as ec2 from 'aws-cdk-lib/aws-ec2'
+import * as ecs from 'aws-cdk-lib/aws-ecs'
+import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2'
+import { Construct } from 'constructs'
 
 export class ApplicationStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
-    super(scope, id, props);
+    super(scope, id, props)
 
     // VPC
     const vpc = new ec2.Vpc(this, 'ApplicationVpc', {
@@ -139,23 +143,23 @@ export class ApplicationStack extends cdk.Stack {
           cidrMask: 24,
         },
       ],
-    });
+    })
 
     // ECS Cluster
     const cluster = new ecs.Cluster(this, 'ApplicationCluster', {
       vpc,
       containerInsights: true,
-    });
+    })
 
     // Application Load Balancer
     const alb = new elbv2.ApplicationLoadBalancer(this, 'ApplicationALB', {
       vpc,
       internetFacing: true,
       securityGroup: this.createALBSecurityGroup(vpc),
-    });
+    })
 
     // ECS Service
-    this.createECSService(cluster, alb);
+    this.createECSService(cluster, alb)
   }
 
   private createALBSecurityGroup(vpc: ec2.Vpc): ec2.SecurityGroup {
@@ -163,31 +167,20 @@ export class ApplicationStack extends cdk.Stack {
       vpc,
       description: 'Security group for Application Load Balancer',
       allowAllOutbound: true,
-    });
+    })
 
-    sg.addIngressRule(
-      ec2.Peer.anyIpv4(),
-      ec2.Port.tcp(80),
-      'Allow HTTP traffic'
-    );
+    sg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80), 'Allow HTTP traffic')
 
-    sg.addIngressRule(
-      ec2.Peer.anyIpv4(),
-      ec2.Port.tcp(443),
-      'Allow HTTPS traffic'
-    );
+    sg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443), 'Allow HTTPS traffic')
 
-    return sg;
+    return sg
   }
 
-  private createECSService(
-    cluster: ecs.Cluster,
-    alb: elbv2.ApplicationLoadBalancer
-  ): void {
+  private createECSService(cluster: ecs.Cluster, alb: elbv2.ApplicationLoadBalancer): void {
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'AppTaskDef', {
       memoryLimitMiB: 512,
       cpu: 256,
-    });
+    })
 
     const container = taskDefinition.addContainer('app', {
       image: ecs.ContainerImage.fromRegistry('myapp:latest'),
@@ -199,19 +192,19 @@ export class ApplicationStack extends cdk.Stack {
       environment: {
         NODE_ENV: 'production',
       },
-    });
+    })
 
     container.addPortMappings({
       containerPort: 3000,
       protocol: ecs.Protocol.TCP,
-    });
+    })
 
     const service = new ecs.FargateService(this, 'AppService', {
       cluster,
       taskDefinition,
       desiredCount: 2,
       assignPublicIp: false,
-    });
+    })
 
     // Target Group
     const targetGroup = new elbv2.ApplicationTargetGroup(this, 'AppTargetGroup', {
@@ -223,15 +216,15 @@ export class ApplicationStack extends cdk.Stack {
         path: '/health',
         healthyHttpCodes: '200',
       },
-    });
+    })
 
-    service.attachToApplicationTargetGroup(targetGroup);
+    service.attachToApplicationTargetGroup(targetGroup)
 
     // Listener
     alb.addListener('AppListener', {
       port: 80,
       defaultTargetGroups: [targetGroup],
-    });
+    })
   }
 }
 ```
@@ -239,6 +232,7 @@ export class ApplicationStack extends cdk.Stack {
 ## Kubernetes パターン
 
 ### Helm Chart 構造
+
 ```
 charts/myapp/
 ├── Chart.yaml
@@ -254,6 +248,7 @@ charts/myapp/
 ```
 
 ### Deployment テンプレート
+
 ```yaml
 # templates/deployment.yaml
 apiVersion: apps/v1
@@ -317,6 +312,7 @@ spec:
 ```
 
 ### Kustomize パターン
+
 ```yaml
 # base/kustomization.yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
@@ -354,6 +350,7 @@ images:
 ## GitOps パターン
 
 ### ArgoCD Application
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -378,6 +375,7 @@ spec:
 ```
 
 ### Flux2 設定
+
 ```yaml
 # clusters/production/myapp-source.yaml
 apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -399,7 +397,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m
-  path: "./overlays/production"
+  path: './overlays/production'
   prune: true
   sourceRef:
     kind: GitRepository
@@ -409,6 +407,7 @@ spec:
 ## 監視・観測可能性
 
 ### Prometheus 設定
+
 ```yaml
 # prometheus-config.yaml
 global:
@@ -416,7 +415,7 @@ global:
   evaluation_interval: 15s
 
 rule_files:
-  - "alert-rules.yml"
+  - 'alert-rules.yml'
 
 scrape_configs:
   - job_name: 'kubernetes-pods'
@@ -435,10 +434,11 @@ alerting:
   alertmanagers:
     - static_configs:
         - targets:
-          - alertmanager:9093
+            - alertmanager:9093
 ```
 
 ### Grafana ダッシュボード
+
 ```json
 {
   "dashboard": {
@@ -472,6 +472,7 @@ alerting:
 ## セキュリティパターン
 
 ### Network Policies
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -482,27 +483,28 @@ spec:
     matchLabels:
       app: myapp
   policyTypes:
-  - Ingress
-  - Egress
+    - Ingress
+    - Egress
   ingress:
-  - from:
-    - podSelector:
-        matchLabels:
-          app: frontend
-    ports:
-    - protocol: TCP
-      port: 3000
+    - from:
+        - podSelector:
+            matchLabels:
+              app: frontend
+      ports:
+        - protocol: TCP
+          port: 3000
   egress:
-  - to:
-    - podSelector:
-        matchLabels:
-          app: database
-    ports:
-    - protocol: TCP
-      port: 5432
+    - to:
+        - podSelector:
+            matchLabels:
+              app: database
+      ports:
+        - protocol: TCP
+          port: 5432
 ```
 
 ### Pod Security Standards
+
 ```yaml
 apiVersion: v1
 kind: Namespace
@@ -517,6 +519,7 @@ metadata:
 ## バックアップ・災害復旧
 
 ### Velero バックアップ
+
 ```yaml
 apiVersion: velero.io/v1
 kind: Backup
@@ -524,51 +527,53 @@ metadata:
   name: myapp-backup
 spec:
   includedNamespaces:
-  - myapp-prod
+    - myapp-prod
   storageLocation: default
   ttl: 720h
   snapshotVolumes: true
 ```
 
 ### データベースバックアップ
+
 ```yaml
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: db-backup
 spec:
-  schedule: "0 2 * * *"
+  schedule: '0 2 * * *'
   jobTemplate:
     spec:
       template:
         spec:
           containers:
-          - name: db-backup
-            image: postgres:15
-            command:
-            - /bin/bash
-            - -c
-            - |
-              pg_dump $DATABASE_URL | gzip > /backup/backup-$(date +%Y%m%d).sql.gz
-              aws s3 cp /backup/backup-$(date +%Y%m%d).sql.gz s3://myapp-backups/
-            env:
-            - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: db-secret
-                  key: url
-            volumeMounts:
-            - name: backup-storage
-              mountPath: /backup
+            - name: db-backup
+              image: postgres:15
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  pg_dump $DATABASE_URL | gzip > /backup/backup-$(date +%Y%m%d).sql.gz
+                  aws s3 cp /backup/backup-$(date +%Y%m%d).sql.gz s3://myapp-backups/
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: db-secret
+                      key: url
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backup
           restartPolicy: OnFailure
           volumes:
-          - name: backup-storage
-            emptyDir: {}
+            - name: backup-storage
+              emptyDir: {}
 ```
 
 ## トラブルシューティング
 
 ### リソース監視
+
 ```bash
 # ノードリソース確認
 kubectl top nodes
@@ -584,6 +589,7 @@ kubectl logs -f deployment/myapp -n myapp-prod
 ```
 
 ### デバッグ用Pod
+
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -591,11 +597,11 @@ metadata:
   name: debug-pod
 spec:
   containers:
-  - name: debug
-    image: nicolaka/netshoot
-    command: ["/bin/bash"]
-    args: ["-c", "while true; do sleep 30; done;"]
-    securityContext:
-      capabilities:
-        add: ["NET_ADMIN"]
+    - name: debug
+      image: nicolaka/netshoot
+      command: ['/bin/bash']
+      args: ['-c', 'while true; do sleep 30; done;']
+      securityContext:
+        capabilities:
+          add: ['NET_ADMIN']
 ```

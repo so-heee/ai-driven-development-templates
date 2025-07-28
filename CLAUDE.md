@@ -44,7 +44,11 @@
 
 ## リポジトリ管理
 
-詳細な改善計画・運用手順は[.claude/workflows/](.claude/workflows/)を参照してください。
+詳細な改善計画・運用手順は以下のワークフロードキュメントを参照してください：
+
+- **[テンプレートメンテナンス](.claude/workflows/01-template-maintenance.md)** - Claude Codeによる機械的メンテナンス運用
+- **[改善計画・管理](.claude/workflows/02-improvement-management.md)** - リポジトリの継続的改善・プロジェクト管理
+- **[Gitガイドライン](.claude/workflows/03-git-guidelines.md)** - Git運用・品質管理・自動化システム
 
 ---
 

@@ -100,8 +100,8 @@ cp -r templates/shared/general/ ./.claude/shared/general/
 - **非効率**: 「エラーが出ました。どうしたらいいですか？」
 
 ### 言語固有実装パターン
-- **Go言語**: 「.claude/shared/backend/go/04-error-handling.md のパターンでエラーハンドリングを実装」
-- **TypeScript**: 「.claude/shared/backend/typescript/02-database-patterns.md の Prisma パターンでデータアクセス層を作成」
+- **Go言語**: 「.claude/shared/backend/go/05-error-handling.md のパターンでエラーハンドリングを実装」
+- **TypeScript**: 「.claude/shared/backend/typescript/03-database-patterns.md の Prisma パターンでデータアクセス層を作成」
 
 ## Claude Codeでのセッション管理
 
@@ -133,7 +133,7 @@ cp -r templates/shared/general/ ./.claude/shared/general/
 
 #### 3. 実装
 ```
-"templates/shared/backend/go/01-api-patterns.md の Gin パターンで実装"
+"templates/shared/backend/go/02-api-patterns.md の Gin パターンで実装"
 "templates/shared/frontend/03-state-management.md の状態管理パターンで実装"
 ```
 
@@ -180,7 +180,7 @@ cp -r templates/shared/general/ ./.claude/shared/general/
 ### 要件ベース新機能開発
 ```
 「docs/requirements/001_user-authentication_20250202.md の要件を確認して、
-.claude/shared/backend/typescript/03-authentication.md のパターンでユーザー認証機能を実装」
+.claude/shared/backend/typescript/04-authentication.md のパターンでユーザー認証機能を実装」
 ```
 
 ### フロントエンド開発
@@ -211,16 +211,18 @@ cp -r templates/shared/general/ ./.claude/shared/general/
 
 #### Go言語プロジェクト
 ```
-「.claude/shared/backend/go/01-api-patterns.md の Gin パターンで REST API を実装」
-「.claude/shared/backend/go/04-error-handling.md のエラーハンドリングパターンを適用」
-「.claude/shared/backend/go/05-logging.md の logrus パターンで構造化ログを実装」
+「.claude/shared/backend/go/01-coding-guidelines.md のコーディング規約を確認してコードレビュー」
+「.claude/shared/backend/go/02-api-patterns.md の Gin パターンで REST API を実装」
+「.claude/shared/backend/go/05-error-handling.md のエラーハンドリングパターンを適用」
+「.claude/shared/backend/go/06-logging.md の logrus パターンで構造化ログを実装」
 ```
 
 #### TypeScript/Node.jsプロジェクト
 ```
-「.claude/shared/backend/typescript/01-api-patterns.md の Express パターンで API を作成」
-「.claude/shared/backend/typescript/02-database-patterns.md の Prisma パターンでデータアクセス層を実装」
-「.claude/shared/backend/typescript/03-authentication.md の JWT パターンで認証機能を実装」
+「.claude/shared/backend/typescript/01-coding-guidelines.md のコーディング規約を確認してコードレビュー」
+「.claude/shared/backend/typescript/02-api-patterns.md の Express パターンで API を作成」
+「.claude/shared/backend/typescript/03-database-patterns.md の Prisma パターンでデータアクセス層を実装」
+「.claude/shared/backend/typescript/04-authentication.md の JWT パターンで認証機能を実装」
 ```
 
 ### DevOps・インフラ

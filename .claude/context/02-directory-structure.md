@@ -21,17 +21,19 @@ templates/                 # プロジェクト用テンプレート
 │   │   ├── 02-database-design.md          # データベース設計
 │   │   ├── 03-security-principles.md      # セキュリティ原則
 │   │   ├── go/          # Go言語固有実装
-│   │   │   ├── 01-api-patterns.md
-│   │   │   ├── 02-database-patterns.md
-│   │   │   ├── 03-authentication.md
-│   │   │   ├── 04-error-handling.md
-│   │   │   └── 05-logging.md
+│   │   │   ├── 01-coding-guidelines.md  # Goコーディング規約
+│   │   │   ├── 02-api-patterns.md       # API実装パターン
+│   │   │   ├── 03-database-patterns.md  # データベースパターン
+│   │   │   ├── 04-authentication.md     # 認証実装
+│   │   │   ├── 05-error-handling.md     # エラーハンドリング
+│   │   │   └── 06-logging.md            # ログ実装
 │   │   └── typescript/  # TypeScript固有実装
-│   │       ├── 01-api-patterns.md
-│   │       ├── 02-database-patterns.md
-│   │       ├── 03-authentication.md
-│   │       ├── 04-error-handling.md
-│   │       └── 05-logging.md
+│   │       ├── 01-coding-guidelines.md  # TypeScriptコーディング規約
+│   │       ├── 02-api-patterns.md       # API実装パターン
+│   │       ├── 03-database-patterns.md  # データベースパターン
+│   │       ├── 04-authentication.md     # 認証実装
+│   │       ├── 05-error-handling.md     # エラーハンドリング
+│   │       └── 06-logging.md            # ログ実装
 │   ├── devops/          # CI/CD・Docker・監視等のパターン
 │   │   ├── 01-cicd-patterns.md     # CI/CD パイプライン
 │   │   ├── 02-docker-patterns.md   # コンテナ化戦略

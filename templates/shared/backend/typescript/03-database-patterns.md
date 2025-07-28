@@ -1,6 +1,7 @@
 # TypeScript データベースパターン
 
 ## Prisma ORM
+
 ```typescript
 // schema.prisma
 model User {
@@ -45,33 +46,34 @@ class UserRepository {
 ```
 
 ## TypeORM
+
 ```typescript
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm'
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
-  id: number;
+  id: number
 
   @Column({ length: 100 })
-  name: string;
+  name: string
 
   @Column({ unique: true })
-  email: string;
+  email: string
 
   @OneToMany(() => Post, post => post.author)
-  posts: Post[];
+  posts: Post[]
 }
 
 // Repository使用
-import { Repository } from 'typeorm';
+import { Repository } from 'typeorm'
 
 class UserService {
   constructor(private userRepo: Repository<User>) {}
 
   async createUser(userData: CreateUserDto): Promise<User> {
-    const user = this.userRepo.create(userData);
-    return this.userRepo.save(user);
+    const user = this.userRepo.create(userData)
+    return this.userRepo.save(user)
   }
 }
 ```

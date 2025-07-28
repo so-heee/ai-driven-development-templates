@@ -1,6 +1,7 @@
 # Go 認証実装
 
 ## JWT認証
+
 ```go
 import "github.com/golang-jwt/jwt/v4"
 
@@ -20,7 +21,7 @@ func generateToken(userID int, role string) (string, error) {
             Issuer:    "myapp",
         },
     }
-    
+
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
     return token.SignedString([]byte("secret"))
 }
@@ -29,16 +30,17 @@ func validateToken(tokenString string) (*Claims, error) {
     token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
         return []byte("secret"), nil
     })
-    
+
     if claims, ok := token.Claims.(*Claims); ok && token.Valid {
         return claims, nil
     }
-    
+
     return nil, err
 }
 ```
 
 ## パスワードハッシュ
+
 ```go
 import "golang.org/x/crypto/bcrypt"
 
@@ -54,6 +56,7 @@ func checkPassword(password, hash string) bool {
 ```
 
 ## OAuth2.0
+
 ```go
 import "golang.org/x/oauth2"
 

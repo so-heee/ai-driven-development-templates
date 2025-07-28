@@ -3,6 +3,7 @@
 ## 基本的なDockerfile
 
 ### Node.js アプリケーション
+
 ```dockerfile
 # マルチステージビルド
 FROM node:18-alpine AS builder
@@ -37,6 +38,7 @@ CMD ["npm", "start"]
 ```
 
 ### Python アプリケーション
+
 ```dockerfile
 FROM python:3.11-slim
 
@@ -71,6 +73,7 @@ CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app:app"]
 ## マルチステージビルドパターン
 
 ### フロントエンド最適化
+
 ```dockerfile
 # ビルドステージ
 FROM node:18-alpine AS builder
@@ -101,6 +104,7 @@ CMD ["nginx", "-g", "daemon off;"]
 ```
 
 ### Go アプリケーション
+
 ```dockerfile
 # ビルドステージ
 FROM golang:1.20-alpine AS builder
@@ -131,6 +135,7 @@ ENTRYPOINT ["/app"]
 ## Docker Compose パターン
 
 ### 開発環境
+
 ```yaml
 version: '3.8'
 
@@ -140,7 +145,7 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - NODE_ENV=development
       - DATABASE_URL=postgresql://user:password@db:5432/myapp
@@ -162,13 +167,13 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - "5432:5432"
+      - '5432:5432'
     restart: unless-stopped
 
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
     restart: unless-stopped
@@ -176,7 +181,7 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "80:80"
+      - '80:80'
     volumes:
       - ./nginx.dev.conf:/etc/nginx/nginx.conf
     depends_on:
@@ -193,6 +198,7 @@ networks:
 ```
 
 ### 本番環境
+
 ```yaml
 version: '3.8'
 
@@ -200,7 +206,7 @@ services:
   app:
     image: myapp:latest
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL}
@@ -222,7 +228,7 @@ services:
           cpus: '0.25'
           memory: 256M
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -238,6 +244,7 @@ secrets:
 ## セキュリティベストプラクティス
 
 ### 最小権限の原則
+
 ```dockerfile
 # 非rootユーザーでの実行
 FROM node:18-alpine
@@ -259,6 +266,7 @@ CMD ["node", "server.js"]
 ```
 
 ### シークレット管理
+
 ```yaml
 # Docker Compose with secrets
 services:
@@ -280,6 +288,7 @@ secrets:
 ```
 
 ### イメージスキャン
+
 ```bash
 # Trivyでの脆弱性スキャン
 trivy image myapp:latest
@@ -300,6 +309,7 @@ docker run --rm --net host --pid host --userns host --cap-add audit_control \
 ## パフォーマンス最適化
 
 ### レイヤーキャッシュ最適化
+
 ```dockerfile
 # 悪い例：依存関係の変更でレイヤーが無効化される
 COPY . .
@@ -312,6 +322,7 @@ COPY . .
 ```
 
 ### .dockerignore 設定
+
 ```
 # .dockerignore
 node_modules
@@ -330,6 +341,7 @@ __pycache__
 ```
 
 ### イメージサイズ最適化
+
 ```dockerfile
 # Alpine Linuxの使用
 FROM node:18-alpine
@@ -351,6 +363,7 @@ COPY --from=deps /app/node_modules ./node_modules
 ## 監視とログ
 
 ### ヘルスチェック
+
 ```dockerfile
 # アプリケーションレベルのヘルスチェック
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
@@ -362,34 +375,36 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 ```
 
 ### ログ設定
+
 ```yaml
 services:
   app:
     image: myapp:latest
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
     labels:
-      - "log.service=myapp"
-      - "log.env=production"
+      - 'log.service=myapp'
+      - 'log.env=production'
 ```
 
 ### メトリクス収集
+
 ```yaml
 services:
   app:
     image: myapp:latest
     labels:
-      - "prometheus.io/scrape=true"
-      - "prometheus.io/port=3000"
-      - "prometheus.io/path=/metrics"
+      - 'prometheus.io/scrape=true'
+      - 'prometheus.io/port=3000'
+      - 'prometheus.io/path=/metrics'
 
   prometheus:
     image: prom/prometheus:latest
     ports:
-      - "9090:9090"
+      - '9090:9090'
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
 ```
@@ -397,6 +412,7 @@ services:
 ## トラブルシューティング
 
 ### デバッグコマンド
+
 ```bash
 # コンテナ内でのシェル実行
 docker exec -it container_name sh
@@ -419,6 +435,7 @@ docker network inspect network_name
 ### よくある問題と解決策
 
 #### ポートバインドエラー
+
 ```bash
 # ポート使用状況確認
 netstat -tulpn | grep :3000
@@ -430,6 +447,7 @@ docker rm $(docker ps -aq)
 ```
 
 #### ディスク容量不足
+
 ```bash
 # 未使用リソースの削除
 docker system prune -a
@@ -442,6 +460,7 @@ docker image prune -a
 ```
 
 #### メモリ不足
+
 ```bash
 # メモリ制限の設定
 docker run --memory="512m" myapp:latest
@@ -458,6 +477,7 @@ services:
 ## コンテナオーケストレーション準備
 
 ### Kubernetes準備
+
 ```yaml
 # Deployment用のラベル設定
 labels:
@@ -467,6 +487,7 @@ labels:
 ```
 
 ### Docker Swarm対応
+
 ```yaml
 version: '3.8'
 services:

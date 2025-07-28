@@ -3,16 +3,17 @@
 ## アプリケーション監視
 
 ### メトリクス設計
+
 ```typescript
 // Prometheus メトリクス例
-import { register, Counter, Histogram, Gauge } from 'prom-client';
+import { register, Counter, Histogram, Gauge } from 'prom-client'
 
 // リクエストカウンター
 const httpRequestsTotal = new Counter({
   name: 'http_requests_total',
   help: 'Total number of HTTP requests',
   labelNames: ['method', 'route', 'status_code'],
-});
+})
 
 // レスポンス時間
 const httpRequestDuration = new Histogram({
@@ -20,41 +21,42 @@ const httpRequestDuration = new Histogram({
   help: 'Duration of HTTP requests in seconds',
   labelNames: ['method', 'route'],
   buckets: [0.1, 0.5, 1, 2, 5],
-});
+})
 
 // アクティブ接続数
 const activeConnections = new Gauge({
   name: 'active_connections',
   help: 'Number of active connections',
-});
+})
 
 // ミドルウェアでの計測
 export const metricsMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const start = Date.now();
-  
+  const start = Date.now()
+
   res.on('finish', () => {
-    const duration = (Date.now() - start) / 1000;
-    
+    const duration = (Date.now() - start) / 1000
+
     httpRequestsTotal.inc({
       method: req.method,
       route: req.route?.path || req.path,
       status_code: res.statusCode.toString(),
-    });
-    
+    })
+
     httpRequestDuration.observe(
       {
         method: req.method,
         route: req.route?.path || req.path,
       },
       duration
-    );
-  });
-  
-  next();
-};
+    )
+  })
+
+  next()
+}
 ```
 
 ### ヘルスチェックエンドポイント
+
 ```typescript
 // 基本的なヘルスチェック
 app.get('/health', (req, res) => {
@@ -62,8 +64,8 @@ app.get('/health', (req, res) => {
     status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-  });
-});
+  })
+})
 
 // 詳細なヘルスチェック
 app.get('/health/detailed', async (req, res) => {
@@ -71,52 +73,54 @@ app.get('/health/detailed', async (req, res) => {
     database: await checkDatabase(),
     redis: await checkRedis(),
     external_api: await checkExternalAPI(),
-  };
-  
-  const allHealthy = Object.values(checks).every(check => check.status === 'healthy');
-  
+  }
+
+  const allHealthy = Object.values(checks).every(check => check.status === 'healthy')
+
   res.status(allHealthy ? 200 : 503).json({
     status: allHealthy ? 'healthy' : 'unhealthy',
     timestamp: new Date().toISOString(),
     checks,
-  });
-});
+  })
+})
 
 async function checkDatabase(): Promise<HealthCheck> {
   try {
-    await db.raw('SELECT 1');
-    return { status: 'healthy', message: 'Database connection OK' };
+    await db.raw('SELECT 1')
+    return { status: 'healthy', message: 'Database connection OK' }
   } catch (error) {
-    return { status: 'unhealthy', message: `Database error: ${error.message}` };
+    return { status: 'unhealthy', message: `Database error: ${error.message}` }
   }
 }
 ```
 
 ### カスタムメトリクス
+
 ```typescript
 // ビジネスメトリクス
 const userRegistrations = new Counter({
   name: 'user_registrations_total',
   help: 'Total number of user registrations',
   labelNames: ['source'],
-});
+})
 
 const orderValue = new Histogram({
   name: 'order_value_dollars',
   help: 'Value of orders in dollars',
   buckets: [10, 50, 100, 500, 1000, 5000],
-});
+})
 
 // 使用例
-userRegistrations.inc({ source: 'web' });
-orderValue.observe(123.45);
+userRegistrations.inc({ source: 'web' })
+orderValue.observe(123.45)
 ```
 
 ## ログ管理
 
 ### 構造化ログ
+
 ```typescript
-import winston from 'winston';
+import winston from 'winston'
 
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
@@ -134,15 +138,15 @@ const logger = winston.createLogger({
     new winston.transports.File({ filename: 'error.log', level: 'error' }),
     new winston.transports.File({ filename: 'combined.log' }),
   ],
-});
+})
 
 // リクエストログミドルウェア
 export const requestLogger = (req: Request, res: Response, next: NextFunction) => {
-  const start = Date.now();
-  
+  const start = Date.now()
+
   res.on('finish', () => {
-    const duration = Date.now() - start;
-    
+    const duration = Date.now() - start
+
     logger.info('HTTP Request', {
       method: req.method,
       url: req.originalUrl,
@@ -151,11 +155,11 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
       userAgent: req.get('User-Agent'),
       ip: req.ip,
       userId: req.user?.id,
-    });
-  });
-  
-  next();
-};
+    })
+  })
+
+  next()
+}
 
 // エラーログ
 export const errorLogger = (error: Error, req: Request, res: Response, next: NextFunction) => {
@@ -172,65 +176,69 @@ export const errorLogger = (error: Error, req: Request, res: Response, next: Nex
       body: req.body,
       userId: req.user?.id,
     },
-  });
-  
-  next(error);
-};
+  })
+
+  next(error)
+}
 ```
 
 ### ログレベル戦略
+
 ```typescript
 // 環境別ログレベル
 const getLogLevel = () => {
   switch (process.env.NODE_ENV) {
     case 'development':
-      return 'debug';
+      return 'debug'
     case 'staging':
-      return 'info';
+      return 'info'
     case 'production':
-      return 'warn';
+      return 'warn'
     default:
-      return 'info';
+      return 'info'
   }
-};
+}
 
 // コンテキスト付きロガー
 class ContextualLogger {
-  private context: Record<string, any>;
-  
+  private context: Record<string, any>
+
   constructor(context: Record<string, any> = {}) {
-    this.context = context;
+    this.context = context
   }
-  
+
   child(additionalContext: Record<string, any>): ContextualLogger {
-    return new ContextualLogger({ ...this.context, ...additionalContext });
+    return new ContextualLogger({ ...this.context, ...additionalContext })
   }
-  
+
   info(message: string, meta: Record<string, any> = {}) {
-    logger.info(message, { ...this.context, ...meta });
+    logger.info(message, { ...this.context, ...meta })
   }
-  
+
   error(message: string, error?: Error, meta: Record<string, any> = {}) {
     logger.error(message, {
       ...this.context,
       ...meta,
-      error: error ? {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      } : undefined,
-    });
+      error: error
+        ? {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+          }
+        : undefined,
+    })
   }
 }
 
 // 使用例
-const userLogger = new ContextualLogger({ userId: '12345', feature: 'user-management' });
-userLogger.info('User profile updated');
+const userLogger = new ContextualLogger({ userId: '12345', feature: 'user-management' })
+userLogger.info('User profile updated')
 ```
 
 ## アラート設定
 
 ### Prometheus アラートルール
+
 ```yaml
 # alert-rules.yml
 groups:
@@ -246,8 +254,8 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "High error rate detected"
-          description: "Error rate is {{ $value | humanizePercentage }} for the last 5 minutes"
+          summary: 'High error rate detected'
+          description: 'Error rate is {{ $value | humanizePercentage }} for the last 5 minutes'
 
       - alert: HighResponseTime
         expr: |
@@ -256,8 +264,8 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "High response time detected"
-          description: "95th percentile response time is {{ $value }}s"
+          summary: 'High response time detected'
+          description: '95th percentile response time is {{ $value }}s'
 
       - alert: DatabaseConnectionsHigh
         expr: pg_stat_database_numbackends > 80
@@ -265,8 +273,8 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "High number of database connections"
-          description: "Database has {{ $value }} active connections"
+          summary: 'High number of database connections'
+          description: 'Database has {{ $value }} active connections'
 
       - alert: ServiceDown
         expr: up == 0
@@ -274,11 +282,12 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Service is down"
-          description: "{{ $labels.instance }} is down"
+          summary: 'Service is down'
+          description: '{{ $labels.instance }} is down'
 ```
 
 ### Alertmanager設定
+
 ```yaml
 # alertmanager.yml
 global:
@@ -328,6 +337,7 @@ receivers:
 ## ダッシュボード設計
 
 ### Grafana ダッシュボード
+
 ```json
 {
   "dashboard": {
@@ -363,9 +373,9 @@ receivers:
             "max": 1,
             "thresholds": {
               "steps": [
-                {"color": "green", "value": 0},
-                {"color": "yellow", "value": 0.01},
-                {"color": "red", "value": 0.05}
+                { "color": "green", "value": 0 },
+                { "color": "yellow", "value": 0.01 },
+                { "color": "red", "value": 0.05 }
               ]
             }
           }
@@ -395,6 +405,7 @@ receivers:
 ```
 
 ### SLI/SLO ダッシュボード
+
 ```json
 {
   "dashboard": {
@@ -414,9 +425,9 @@ receivers:
             "unit": "percentunit",
             "thresholds": {
               "steps": [
-                {"color": "red", "value": 0},
-                {"color": "yellow", "value": 0.995},
-                {"color": "green", "value": 0.999}
+                { "color": "red", "value": 0 },
+                { "color": "yellow", "value": 0.995 },
+                { "color": "green", "value": 0.999 }
               ]
             }
           }
@@ -436,9 +447,9 @@ receivers:
             "unit": "s",
             "thresholds": {
               "steps": [
-                {"color": "green", "value": 0},
-                {"color": "yellow", "value": 1},
-                {"color": "red", "value": 2}
+                { "color": "green", "value": 0 },
+                { "color": "yellow", "value": 1 },
+                { "color": "red", "value": 2 }
               ]
             }
           }
@@ -452,56 +463,57 @@ receivers:
 ## 分散トレーシング
 
 ### OpenTelemetry 設定
+
 ```typescript
-import { NodeSDK } from '@opentelemetry/sdk-node';
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
-import { JaegerExporter } from '@opentelemetry/exporter-jaeger';
+import { NodeSDK } from '@opentelemetry/sdk-node'
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
+import { JaegerExporter } from '@opentelemetry/exporter-jaeger'
 
 const jaegerExporter = new JaegerExporter({
   endpoint: process.env.JAEGER_ENDPOINT,
-});
+})
 
 const sdk = new NodeSDK({
   traceExporter: jaegerExporter,
   instrumentations: [getNodeAutoInstrumentations()],
-});
+})
 
-sdk.start();
+sdk.start()
 
 // カスタムスパン
-import { trace } from '@opentelemetry/api';
+import { trace } from '@opentelemetry/api'
 
-const tracer = trace.getTracer('myapp');
+const tracer = trace.getTracer('myapp')
 
 export async function processOrder(orderId: string) {
-  const span = tracer.startSpan('process-order');
-  
+  const span = tracer.startSpan('process-order')
+
   try {
     span.setAttributes({
       'order.id': orderId,
       'operation.name': 'process-order',
-    });
-    
+    })
+
     // ビジネスロジック
-    const order = await fetchOrder(orderId);
-    span.addEvent('order-fetched', { 'order.status': order.status });
-    
-    await validateOrder(order);
-    span.addEvent('order-validated');
-    
-    await updateInventory(order);
-    span.addEvent('inventory-updated');
-    
-    span.setStatus({ code: trace.SpanStatusCode.OK });
-    return order;
+    const order = await fetchOrder(orderId)
+    span.addEvent('order-fetched', { 'order.status': order.status })
+
+    await validateOrder(order)
+    span.addEvent('order-validated')
+
+    await updateInventory(order)
+    span.addEvent('inventory-updated')
+
+    span.setStatus({ code: trace.SpanStatusCode.OK })
+    return order
   } catch (error) {
     span.setStatus({
       code: trace.SpanStatusCode.ERROR,
       message: error.message,
-    });
-    throw error;
+    })
+    throw error
   } finally {
-    span.end();
+    span.end()
   }
 }
 ```
@@ -509,6 +521,7 @@ export async function processOrder(orderId: string) {
 ## パフォーマンス監視
 
 ### アプリケーションパフォーマンス監視
+
 ```typescript
 // メモリ使用量監視
 const memoryUsage = new Gauge({
@@ -516,97 +529,99 @@ const memoryUsage = new Gauge({
   help: 'Node.js memory usage',
   labelNames: ['type'],
   collect() {
-    const usage = process.memoryUsage();
-    this.set({ type: 'rss' }, usage.rss);
-    this.set({ type: 'heapUsed' }, usage.heapUsed);
-    this.set({ type: 'heapTotal' }, usage.heapTotal);
-    this.set({ type: 'external' }, usage.external);
+    const usage = process.memoryUsage()
+    this.set({ type: 'rss' }, usage.rss)
+    this.set({ type: 'heapUsed' }, usage.heapUsed)
+    this.set({ type: 'heapTotal' }, usage.heapTotal)
+    this.set({ type: 'external' }, usage.external)
   },
-});
+})
 
 // イベントループ遅延監視
-import { monitorEventLoopDelay } from 'perf_hooks';
+import { monitorEventLoopDelay } from 'perf_hooks'
 
-const histogram = monitorEventLoopDelay({ resolution: 20 });
-histogram.enable();
+const histogram = monitorEventLoopDelay({ resolution: 20 })
+histogram.enable()
 
 const eventLoopDelay = new Gauge({
   name: 'nodejs_eventloop_delay_seconds',
   help: 'Event loop delay',
   collect() {
-    this.set(histogram.mean / 1000000000);
+    this.set(histogram.mean / 1000000000)
   },
-});
+})
 
 // GC メトリクス
-import v8 from 'v8';
+import v8 from 'v8'
 
 const gcMetrics = new Counter({
   name: 'nodejs_gc_runs_total',
   help: 'Total number of garbage collection runs',
   labelNames: ['type'],
-});
+})
 
 // GC 統計の定期収集
 setInterval(() => {
-  const stats = v8.getHeapStatistics();
+  const stats = v8.getHeapStatistics()
   // メトリクスを更新
-}, 10000);
+}, 10000)
 ```
 
 ## ログ集約
 
 ### ELK Stack 設定
+
 ```yaml
 # logstash.conf
 input {
-  beats {
-    port => 5044
-  }
+beats {
+port => 5044
+}
 }
 
 filter {
-  if [fields][log_type] == "application" {
-    json {
-      source => "message"
-    }
-    
-    date {
-      match => [ "timestamp", "ISO8601" ]
-    }
-    
-    if [level] == "error" {
-      mutate {
-        add_tag => ["error"]
-      }
-    }
-  }
+if [fields][log_type] == "application" {
+json {
+source => "message"
+}
+
+date {
+match => [ "timestamp", "ISO8601" ]
+}
+
+if [level] == "error" {
+mutate {
+add_tag => ["error"]
+}
+}
+}
 }
 
 output {
-  elasticsearch {
-    hosts => ["elasticsearch:9200"]
-    index => "application-logs-%{+YYYY.MM.dd}"
-  }
+elasticsearch {
+hosts => ["elasticsearch:9200"]
+index => "application-logs-%{+YYYY.MM.dd}"
+}
 }
 ```
 
 ### Filebeat 設定
+
 ```yaml
 # filebeat.yml
 filebeat.inputs:
-- type: log
-  enabled: true
-  paths:
-    - /var/log/myapp/*.log
-  fields:
-    log_type: application
-  multiline.pattern: '^\d{4}-\d{2}-\d{2}'
-  multiline.negate: true
-  multiline.match: after
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/myapp/*.log
+    fields:
+      log_type: application
+    multiline.pattern: '^\d{4}-\d{2}-\d{2}'
+    multiline.negate: true
+    multiline.match: after
 
 output.logstash:
-  hosts: ["logstash:5044"]
+  hosts: ['logstash:5044']
 
 processors:
   - add_host_metadata: ~
@@ -616,27 +631,28 @@ processors:
 ## セキュリティ監視
 
 ### セキュリティメトリクス
+
 ```typescript
 // 認証失敗監視
 const authFailures = new Counter({
   name: 'auth_failures_total',
   help: 'Total authentication failures',
   labelNames: ['reason', 'ip'],
-});
+})
 
 // 異常なアクセスパターン検出
 const suspiciousActivity = new Counter({
   name: 'suspicious_activity_total',
   help: 'Suspicious activity detected',
   labelNames: ['type', 'severity'],
-});
+})
 
 // レート制限違反
 const rateLimitViolations = new Counter({
   name: 'rate_limit_violations_total',
   help: 'Rate limit violations',
   labelNames: ['endpoint', 'ip'],
-});
+})
 
 // セキュリティミドルウェア
 export const securityMonitoring = (req: Request, res: Response, next: NextFunction) => {
@@ -645,25 +661,26 @@ export const securityMonitoring = (req: Request, res: Response, next: NextFuncti
     suspiciousActivity.inc({
       type: 'path_traversal_attempt',
       severity: 'high',
-    });
+    })
   }
-  
+
   // SQLインジェクション試行の検出
-  const sqlPatterns = /(union|select|insert|update|delete|drop|create|alter)/i;
+  const sqlPatterns = /(union|select|insert|update|delete|drop|create|alter)/i
   if (sqlPatterns.test(JSON.stringify(req.query) + JSON.stringify(req.body))) {
     suspiciousActivity.inc({
       type: 'sql_injection_attempt',
       severity: 'critical',
-    });
+    })
   }
-  
-  next();
-};
+
+  next()
+}
 ```
 
 ## トラブルシューティング
 
 ### 監視システムの健全性確認
+
 ```bash
 # Prometheus の健全性確認
 curl http://prometheus:9090/-/healthy
@@ -681,6 +698,7 @@ curl -X POST \
 ### よくある問題と解決策
 
 #### メトリクスが表示されない
+
 ```bash
 # Prometheus のターゲット確認
 curl http://prometheus:9090/api/v1/targets
@@ -693,6 +711,7 @@ kubectl exec -it prometheus-pod -- wget -qO- http://myapp:3000/metrics
 ```
 
 #### ログが収集されない
+
 ```bash
 # Filebeat の状態確認
 kubectl logs -l app=filebeat

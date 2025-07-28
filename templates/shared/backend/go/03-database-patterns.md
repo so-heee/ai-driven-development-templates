@@ -1,6 +1,7 @@
 # Go データベースパターン
 
 ## GORM（ORM）
+
 ```go
 // モデル定義
 type User struct {
@@ -26,7 +27,7 @@ func initDB() *gorm.DB {
     if err != nil {
         log.Fatal("Failed to connect database")
     }
-    
+
     // マイグレーション
     db.AutoMigrate(&User{}, &Post{})
     return db
@@ -49,6 +50,7 @@ func updateUser(db *gorm.DB, id uint, updates map[string]interface{}) error {
 ```
 
 ## database/sql（標準ライブラリ）
+
 ```go
 import (
     "database/sql"
@@ -68,7 +70,7 @@ func (r *UserRepository) Create(ctx context.Context, user *User) error {
 func (r *UserRepository) GetByID(ctx context.Context, id int) (*User, error) {
     query := `SELECT id, name, email FROM users WHERE id = $1`
     row := r.db.QueryRowContext(ctx, query, id)
-    
+
     var user User
     err := row.Scan(&user.ID, &user.Name, &user.Email)
     if err == sql.ErrNoRows {
@@ -79,6 +81,7 @@ func (r *UserRepository) GetByID(ctx context.Context, id int) (*User, error) {
 ```
 
 ## トランザクション
+
 ```go
 func transferFunds(db *gorm.DB, fromID, toID uint, amount float64) error {
     return db.Transaction(func(tx *gorm.DB) error {
@@ -87,27 +90,28 @@ func transferFunds(db *gorm.DB, fromID, toID uint, amount float64) error {
         if err := tx.First(&fromAccount, fromID).Error; err != nil {
             return err
         }
-        
+
         if fromAccount.Balance < amount {
             return errors.New("insufficient funds")
         }
-        
+
         // 残高更新
         if err := tx.Model(&fromAccount).Update("balance", fromAccount.Balance-amount).Error; err != nil {
             return err
         }
-        
+
         var toAccount Account
         if err := tx.First(&toAccount, toID).Error; err != nil {
             return err
         }
-        
+
         return tx.Model(&toAccount).Update("balance", toAccount.Balance+amount).Error
     })
 }
 ```
 
 ## MongoDB
+
 ```go
 import (
     "go.mongodb.org/mongo-driver/mongo"

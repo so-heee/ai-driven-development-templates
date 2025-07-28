@@ -3,43 +3,45 @@
 ## 継続的インテグレーション（CI）
 
 ### 基本的なCIパイプライン
+
 ```yaml
 # GitHub Actions例
 name: CI Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Run linter
-      run: npm run lint
-    
-    - name: Run tests
-      run: npm run test:coverage
-    
-    - name: Build
-      run: npm run build
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run tests
+        run: npm run test:coverage
+
+      - name: Build
+        run: npm run build
 ```
 
 ### テスト戦略
+
 ```yaml
 jobs:
   unit-tests:
@@ -47,14 +49,14 @@ jobs:
     steps:
       - name: Unit Tests
         run: npm run test:unit
-  
+
   integration-tests:
     runs-on: ubuntu-latest
     needs: unit-tests
     steps:
       - name: Integration Tests
         run: npm run test:integration
-  
+
   e2e-tests:
     runs-on: ubuntu-latest
     needs: [unit-tests, integration-tests]
@@ -64,6 +66,7 @@ jobs:
 ```
 
 ### 品質ゲート
+
 ```yaml
 jobs:
   quality-gate:
@@ -73,10 +76,10 @@ jobs:
         run: |
           npm run test:coverage
           npm run coverage:check
-      
+
       - name: Security Scan
         run: npm audit
-      
+
       - name: Dependency Check
         run: npm run deps:check
 ```
@@ -84,6 +87,7 @@ jobs:
 ## 継続的デプロイメント（CD）
 
 ### ブランチング戦略とデプロイ
+
 ```yaml
 # Feature Branch → Development
 deploy-dev:
@@ -111,6 +115,7 @@ deploy-production:
 ```
 
 ### Blue-Greenデプロイメント
+
 ```yaml
 deploy-blue-green:
   runs-on: ubuntu-latest
@@ -119,21 +124,22 @@ deploy-blue-green:
       run: |
         kubectl apply -f k8s/green-deployment.yaml
         kubectl wait --for=condition=ready pod -l app=myapp,slot=green
-    
+
     - name: Run Health Checks
       run: |
         npm run health-check:green
-    
+
     - name: Switch Traffic
       run: |
         kubectl patch service myapp-service -p '{"spec":{"selector":{"slot":"green"}}}'
-    
+
     - name: Cleanup Blue Environment
       run: |
         kubectl delete deployment myapp-blue
 ```
 
 ### カナリアデプロイメント
+
 ```yaml
 canary-deploy:
   runs-on: ubuntu-latest
@@ -143,18 +149,18 @@ canary-deploy:
         kubectl apply -f k8s/canary-deployment.yaml
         kubectl scale deployment myapp-canary --replicas=1
         kubectl scale deployment myapp-stable --replicas=9
-    
+
     - name: Monitor Metrics
       run: |
         sleep 300
         npm run monitor:canary
-    
+
     - name: Increase Canary Traffic (50%)
       if: success()
       run: |
         kubectl scale deployment myapp-canary --replicas=5
         kubectl scale deployment myapp-stable --replicas=5
-    
+
     - name: Full Rollout
       if: success()
       run: |
@@ -165,6 +171,7 @@ canary-deploy:
 ## パイプライン設計パターン
 
 ### 並列実行パターン
+
 ```yaml
 jobs:
   lint:
@@ -172,19 +179,19 @@ jobs:
     steps:
       - name: Lint
         run: npm run lint
-  
+
   unit-test:
     runs-on: ubuntu-latest
     steps:
       - name: Unit Test
         run: npm run test:unit
-  
+
   security-scan:
     runs-on: ubuntu-latest
     steps:
       - name: Security Scan
         run: npm run security:scan
-  
+
   build:
     runs-on: ubuntu-latest
     needs: [lint, unit-test, security-scan]
@@ -194,6 +201,7 @@ jobs:
 ```
 
 ### マトリックス戦略
+
 ```yaml
 jobs:
   test:
@@ -202,13 +210,14 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         node-version: [16, 18, 20]
-    
+
     steps:
       - name: Test on ${{ matrix.os }} with Node ${{ matrix.node-version }}
         run: npm test
 ```
 
 ### 条件付き実行
+
 ```yaml
 jobs:
   deploy:
@@ -217,7 +226,7 @@ jobs:
     steps:
       - name: Deploy
         run: npm run deploy
-  
+
   notify-slack:
     if: failure()
     runs-on: ubuntu-latest
@@ -232,6 +241,7 @@ jobs:
 ## 環境管理
 
 ### 環境変数管理
+
 ```yaml
 jobs:
   deploy:
@@ -241,7 +251,7 @@ jobs:
       NODE_ENV: production
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       API_KEY: ${{ secrets.API_KEY }}
-    
+
     steps:
       - name: Deploy with Environment Variables
         run: |
@@ -250,6 +260,7 @@ jobs:
 ```
 
 ### シークレット管理
+
 ```yaml
 # GitHub Secrets使用例
 steps:
@@ -264,6 +275,7 @@ steps:
 ## ロールバック戦略
 
 ### 自動ロールバック
+
 ```yaml
 jobs:
   deploy-with-rollback:
@@ -272,11 +284,11 @@ jobs:
       - name: Deploy
         id: deploy
         run: npm run deploy
-      
+
       - name: Health Check
         id: health
         run: npm run health-check
-      
+
       - name: Rollback on Failure
         if: failure()
         run: |
@@ -286,6 +298,7 @@ jobs:
 ```
 
 ### 手動承認フロー
+
 ```yaml
 jobs:
   deploy-approval:
@@ -298,7 +311,7 @@ jobs:
           secret: ${{ github.TOKEN }}
           approvers: team-leads
           minimum-approvals: 2
-      
+
       - name: Deploy to Production
         run: npm run deploy:prod
 ```
@@ -306,6 +319,7 @@ jobs:
 ## 監視とアラート
 
 ### デプロイメント後の監視
+
 ```yaml
 jobs:
   post-deploy-monitoring:
@@ -314,15 +328,15 @@ jobs:
     steps:
       - name: Wait for Deployment
         run: sleep 60
-      
+
       - name: Check Application Health
         run: |
           curl -f https://api.example.com/health
-      
+
       - name: Check Response Time
         run: |
           npm run performance:check
-      
+
       - name: Alert on Issues
         if: failure()
         run: |
@@ -332,6 +346,7 @@ jobs:
 ## 最適化パターン
 
 ### キャッシュ戦略
+
 ```yaml
 jobs:
   build:
@@ -342,7 +357,7 @@ jobs:
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-      
+
       - name: Cache Build Output
         uses: actions/cache@v3
         with:
@@ -351,6 +366,7 @@ jobs:
 ```
 
 ### アーティファクト管理
+
 ```yaml
 jobs:
   build:
@@ -358,13 +374,13 @@ jobs:
     steps:
       - name: Build
         run: npm run build
-      
+
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: build-files
           path: dist/
-  
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -381,6 +397,7 @@ jobs:
 ### よくある問題と解決策
 
 #### ビルド失敗
+
 ```bash
 # 依存関係の問題
 npm ci --prefer-offline
@@ -392,6 +409,7 @@ npm install
 ```
 
 #### デプロイメント失敗
+
 ```bash
 # ヘルスチェック失敗時の診断
 kubectl logs deployment/myapp
@@ -402,6 +420,7 @@ kubectl rollout undo deployment/myapp
 ```
 
 #### パフォーマンス問題
+
 ```bash
 # リソース使用量チェック
 kubectl top pods

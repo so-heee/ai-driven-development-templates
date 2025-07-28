@@ -3,13 +3,14 @@
 ## CSS設計手法
 
 ### BEM記法
+
 ```scss
 // Block - Component
 .user-card {
   padding: 1rem;
   border: 1px solid #ddd;
   border-radius: 8px;
-  
+
   // Element - Component の一部
   &__header {
     display: flex;
@@ -17,37 +18,37 @@
     align-items: center;
     margin-bottom: 1rem;
   }
-  
+
   &__title {
     font-size: 1.2rem;
     font-weight: bold;
     color: #333;
   }
-  
+
   &__content {
     line-height: 1.6;
   }
-  
+
   &__actions {
     display: flex;
     gap: 0.5rem;
     margin-top: 1rem;
   }
-  
+
   // Modifier - Component のバリエーション
   &--highlighted {
     border-color: #007bff;
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
   }
-  
+
   &--compact {
     padding: 0.5rem;
-    
+
     .user-card__title {
       font-size: 1rem;
     }
   }
-  
+
   &--disabled {
     opacity: 0.6;
     pointer-events: none;
@@ -56,6 +57,7 @@
 ```
 
 ### CSS Custom Properties（CSS変数）
+
 ```scss
 :root {
   // Color System
@@ -64,20 +66,20 @@
   --color-primary-500: #3b82f6;
   --color-primary-600: #2563eb;
   --color-primary-900: #1e3a8a;
-  
+
   --color-gray-50: #f9fafb;
   --color-gray-100: #f3f4f6;
   --color-gray-500: #6b7280;
   --color-gray-900: #111827;
-  
+
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
-  
+
   // Typography
   --font-family-sans: 'Inter', system-ui, sans-serif;
   --font-family-mono: 'JetBrains Mono', 'Fira Code', monospace;
-  
+
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
@@ -85,12 +87,12 @@
   --font-size-xl: 1.25rem;
   --font-size-2xl: 1.5rem;
   --font-size-3xl: 1.875rem;
-  
+
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
-  
+
   // Spacing
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -100,19 +102,19 @@
   --space-8: 2rem;
   --space-12: 3rem;
   --space-16: 4rem;
-  
+
   // Border Radius
   --radius-sm: 0.125rem;
   --radius-md: 0.375rem;
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
   --radius-full: 9999px;
-  
+
   // Shadows
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  
+
   // Z-index
   --z-dropdown: 1000;
   --z-sticky: 1020;
@@ -123,13 +125,13 @@
 }
 
 // ダークテーマ
-[data-theme="dark"] {
+[data-theme='dark'] {
   --color-primary-50: #1e3a8a;
   --color-primary-100: #2563eb;
   --color-primary-500: #60a5fa;
   --color-primary-600: #93c5fd;
   --color-primary-900: #dbeafe;
-  
+
   --color-gray-50: #111827;
   --color-gray-100: #1f2937;
   --color-gray-500: #9ca3af;
@@ -140,31 +142,32 @@
 ## CSS-in-JS パターン
 
 ### styled-components
+
 ```tsx
-import styled, { css } from 'styled-components';
+import styled, { css } from 'styled-components'
 
 // 基本的なスタイルコンポーネント
 const Button = styled.button<{
-  variant?: 'primary' | 'secondary' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
-  fullWidth?: boolean;
+  variant?: 'primary' | 'secondary' | 'danger'
+  size?: 'sm' | 'md' | 'lg'
+  fullWidth?: boolean
 }>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  
+
   border: none;
   border-radius: var(--radius-md);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
   transition: all 0.2s ease-in-out;
-  
+
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
   }
-  
+
   // サイズバリエーション
   ${props => {
     switch (props.size) {
@@ -172,20 +175,20 @@ const Button = styled.button<{
         return css`
           padding: var(--space-2) var(--space-3);
           font-size: var(--font-size-sm);
-        `;
+        `
       case 'lg':
         return css`
           padding: var(--space-4) var(--space-6);
           font-size: var(--font-size-lg);
-        `;
+        `
       default:
         return css`
           padding: var(--space-3) var(--space-4);
           font-size: var(--font-size-base);
-        `;
+        `
     }
   }}
-  
+
   // カラーバリエーション
   ${props => {
     switch (props.variant) {
@@ -193,65 +196,63 @@ const Button = styled.button<{
         return css`
           background: var(--color-primary-500);
           color: white;
-          
+
           &:hover:not(:disabled) {
             background: var(--color-primary-600);
           }
-          
+
           &:focus {
             outline: 2px solid var(--color-primary-500);
             outline-offset: 2px;
           }
-        `;
+        `
       case 'danger':
         return css`
           background: var(--color-error);
           color: white;
-          
+
           &:hover:not(:disabled) {
             background: #dc2626;
           }
-        `;
+        `
       default:
         return css`
           background: var(--color-gray-100);
           color: var(--color-gray-900);
-          
+
           &:hover:not(:disabled) {
             background: var(--color-gray-200);
           }
-        `;
+        `
     }
   }}
   
   // 全幅スタイル
-  ${props => props.fullWidth && css`
-    width: 100%;
-  `}
-`;
+  ${props =>
+    props.fullWidth &&
+    css`
+      width: 100%;
+    `}
+`
 
 // 使用例
 export const ActionButton: React.FC<{
-  onClick: () => void;
-  loading?: boolean;
-  children: React.ReactNode;
+  onClick: () => void
+  loading?: boolean
+  children: React.ReactNode
 }> = ({ onClick, loading, children }) => (
-  <Button
-    variant="primary"
-    size="md"
-    onClick={onClick}
-    disabled={loading}
-  >
+  <Button variant="primary" size="md" onClick={onClick} disabled={loading}>
     {loading && <Spinner size="sm" />}
     {children}
   </Button>
-);
+)
 ```
 
 ### emotion
+
 ```tsx
-import { css, jsx } from '@emotion/react';
-import styled from '@emotion/styled';
+import { css, jsx } from '@emotion/react'
+import styled from '@emotion/styled'
 
 // CSS関数を使用
 const buttonStyles = css`
@@ -261,11 +262,11 @@ const buttonStyles = css`
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  
+
   &:hover {
     transform: translateY(-1px);
   }
-`;
+`
 
 // 条件付きスタイル
 const getButtonVariant = (variant: string) => {
@@ -274,51 +275,56 @@ const getButtonVariant = (variant: string) => {
       return css`
         background: #3b82f6;
         color: white;
-        &:hover { background: #2563eb; }
-      `;
+        &:hover {
+          background: #2563eb;
+        }
+      `
     case 'outline':
       return css`
         background: transparent;
         color: #3b82f6;
         border: 1px solid #3b82f6;
-        &:hover { background: #eff6ff; }
-      `;
+        &:hover {
+          background: #eff6ff;
+        }
+      `
     default:
       return css`
         background: #f3f4f6;
         color: #374151;
-      `;
+      `
   }
-};
+}
 
 // styled コンポーネント
 const StyledButton = styled.button<{ variant: string }>`
   ${buttonStyles}
   ${props => getButtonVariant(props.variant)}
-`;
+`
 ```
 
 ## Tailwind CSS パターン
 
 ### 基本的なコンポーネント
+
 ```tsx
 // ユーティリティクラスの組み合わせ
-const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ 
-  children, 
-  className = '' 
-}) => (
-  <div className={`
+const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
+  <div
+    className={`
     bg-white rounded-lg shadow-md border border-gray-200 
     p-6 hover:shadow-lg transition-shadow duration-200
     ${className}
-  `}>
+  `}
+  >
     {children}
   </div>
-);
+)
 
 // レスポンシブデザイン
 const ResponsiveGrid: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="
+  <div
+    className="
     grid 
     grid-cols-1 
     md:grid-cols-2 
@@ -327,32 +333,30 @@ const ResponsiveGrid: React.FC<{ children: React.ReactNode }> = ({ children }) =
     gap-4 
     md:gap-6 
     lg:gap-8
-  ">
+  "
+  >
     {children}
   </div>
-);
+)
 
 // 状態に応じたスタイル
-const StatusBadge: React.FC<{ 
-  status: 'active' | 'inactive' | 'pending'; 
-  children: React.ReactNode;
+const StatusBadge: React.FC<{
+  status: 'active' | 'inactive' | 'pending'
+  children: React.ReactNode
 }> = ({ status, children }) => {
-  const baseClasses = "px-2 py-1 rounded-full text-xs font-medium";
+  const baseClasses = 'px-2 py-1 rounded-full text-xs font-medium'
   const statusClasses = {
-    active: "bg-green-100 text-green-800",
-    inactive: "bg-gray-100 text-gray-800",
-    pending: "bg-yellow-100 text-yellow-800"
-  };
-  
-  return (
-    <span className={`${baseClasses} ${statusClasses[status]}`}>
-      {children}
-    </span>
-  );
-};
+    active: 'bg-green-100 text-green-800',
+    inactive: 'bg-gray-100 text-gray-800',
+    pending: 'bg-yellow-100 text-yellow-800',
+  }
+
+  return <span className={`${baseClasses} ${statusClasses[status]}`}>{children}</span>
+}
 ```
 
 ### カスタムクラスとコンポーネント
+
 ```scss
 // tailwind.config.js でのカスタマイズ
 module.exports = {
@@ -386,21 +390,21 @@ module.exports = {
   .btn {
     @apply px-4 py-2 rounded font-medium transition-colors;
   }
-  
+
   .btn-primary {
     @apply btn bg-blue-500 text-white hover:bg-blue-600;
   }
-  
+
   .btn-secondary {
     @apply btn bg-gray-200 text-gray-900 hover:bg-gray-300;
   }
-  
+
   .card {
     @apply bg-white rounded-lg shadow border p-6;
   }
-  
+
   .form-input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-md 
+    @apply w-full px-3 py-2 border border-gray-300 rounded-md
            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
   }
 }
@@ -409,6 +413,7 @@ module.exports = {
 ## アニメーション・トランジション
 
 ### CSS アニメーション
+
 ```scss
 // キーフレームアニメーション
 @keyframes fadeIn {
@@ -423,7 +428,8 @@ module.exports = {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -462,7 +468,7 @@ module.exports = {
 // ホバーエフェクト
 .hover-lift {
   transition: transform 0.2s ease-in-out;
-  
+
   &:hover {
     transform: translateY(-2px);
   }
@@ -470,7 +476,7 @@ module.exports = {
 
 .hover-grow {
   transition: transform 0.2s ease-in-out;
-  
+
   &:hover {
     transform: scale(1.05);
   }
@@ -478,6 +484,7 @@ module.exports = {
 ```
 
 ### React Transition Group
+
 ```tsx
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
@@ -523,8 +530,9 @@ const AnimatedList: React.FC<{ items: Item[] }> = ({ items }) => (
 ```
 
 ### Framer Motion
+
 ```tsx
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion'
 
 // 基本的なアニメーション
 const AnimatedCard: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -539,13 +547,13 @@ const AnimatedCard: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   >
     {children}
   </motion.div>
-);
+)
 
 // 条件付きアニメーション
 const Modal: React.FC<{ isOpen: boolean; onClose: () => void; children: React.ReactNode }> = ({
   isOpen,
   onClose,
-  children
+  children,
 }) => (
   <AnimatePresence>
     {isOpen && (
@@ -561,7 +569,7 @@ const Modal: React.FC<{ isOpen: boolean; onClose: () => void; children: React.Re
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
-          transition={{ type: "spring", damping: 25, stiffness: 500 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 500 }}
           className="modal-content"
         >
           {children}
@@ -569,7 +577,7 @@ const Modal: React.FC<{ isOpen: boolean; onClose: () => void; children: React.Re
       </>
     )}
   </AnimatePresence>
-);
+)
 
 // スタガー（時差）アニメーション
 const container = {
@@ -577,34 +585,31 @@ const container = {
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
-    }
-  }
-};
+      staggerChildren: 0.1,
+    },
+  },
+}
 
 const item = {
   hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 }
-};
+  show: { opacity: 1, y: 0 },
+}
 
 const StaggeredList: React.FC<{ items: string[] }> = ({ items }) => (
-  <motion.ul
-    variants={container}
-    initial="hidden"
-    animate="show"
-  >
+  <motion.ul variants={container} initial="hidden" animate="show">
     {items.map((item, index) => (
       <motion.li key={index} variants={item}>
         {item}
       </motion.li>
     ))}
   </motion.ul>
-);
+)
 ```
 
 ## レスポンシブデザイン
 
 ### ブレイクポイント設計
+
 ```scss
 // ブレイクポイント定義
 $breakpoints: (
@@ -613,7 +618,7 @@ $breakpoints: (
   md: 768px,
   lg: 992px,
   xl: 1200px,
-  xxl: 1400px
+  xxl: 1400px,
 );
 
 // ミックスイン
@@ -638,11 +643,11 @@ $breakpoints: (
 // 使用例
 .container {
   padding: 1rem;
-  
+
   @include media-up(md) {
     padding: 2rem;
   }
-  
+
   @include media-up(lg) {
     padding: 3rem;
     max-width: 1200px;
@@ -654,16 +659,16 @@ $breakpoints: (
   display: grid;
   grid-template-columns: 1fr;
   gap: 1rem;
-  
+
   @include media-up(md) {
     grid-template-columns: repeat(2, 1fr);
     gap: 2rem;
   }
-  
+
   @include media-up(lg) {
     grid-template-columns: repeat(3, 1fr);
   }
-  
+
   @include media-up(xl) {
     grid-template-columns: repeat(4, 1fr);
     gap: 3rem;
@@ -672,6 +677,7 @@ $breakpoints: (
 ```
 
 ### Container Queries
+
 ```scss
 // モダンなContainer Queries
 .card-container {
@@ -680,16 +686,16 @@ $breakpoints: (
 
 .card {
   padding: 1rem;
-  
+
   @container (min-width: 300px) {
     padding: 1.5rem;
     display: flex;
     align-items: center;
   }
-  
+
   @container (min-width: 500px) {
     padding: 2rem;
-    
+
     .card__image {
       width: 120px;
       height: 120px;
@@ -701,6 +707,7 @@ $breakpoints: (
 ## パフォーマンス最適化
 
 ### CSS最適化
+
 ```scss
 // Critical CSS の分離
 // above-the-fold コンテンツに必要なスタイルのみを含める
@@ -746,27 +753,24 @@ div.container > ul.list > li.item > a.link {
 ```
 
 ### 動的インポート（CSS-in-JS）
+
 ```tsx
 // 必要時にのみスタイルを読み込み
-const LazyStyledComponent = React.lazy(() => 
+const LazyStyledComponent = React.lazy(() =>
   import('./HeavyStyledComponent').then(module => ({
-    default: module.HeavyStyledComponent
+    default: module.HeavyStyledComponent,
   }))
-);
+)
 
 // テーマの動的切り替え
 const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+
   useEffect(() => {
     // テーマに応じてCSS変数を動的に更新
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
-  
-  return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
-};
+    document.documentElement.setAttribute('data-theme', theme)
+  }, [theme])
+
+  return <ThemeContext.Provider value={{ theme, setTheme }}>{children}</ThemeContext.Provider>
+}
 ```

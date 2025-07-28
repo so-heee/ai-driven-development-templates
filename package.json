@@ -1,0 +1,25 @@
+{
+  "name": "ai-driven-development-templates",
+  "version": "1.0.0",
+  "description": "AI駆動開発を支援するドキュメント管理リポジトリ",
+  "private": true,
+  "scripts": {
+    "lint:md": "markdownlint-cli2 \"**/*.md\"",
+    "format:md": "prettier --write \"**/*.md\"",
+    "fix:md": "npm run format:md && npm run lint:md",
+    "prepare": "lefthook install"
+  },
+  "keywords": [
+    "ai",
+    "claude-code",
+    "documentation",
+    "templates",
+    "development"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "markdownlint-cli2": "^0.13.0",
+    "prettier": "^3.3.3"
+  }
+}

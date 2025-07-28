@@ -1,0 +1,27 @@
+# AI駆動開発ドキュメント管理リポジトリ用 lefthook 設定
+# Markdown ファイルの品質管理を自動化
+
+pre-commit:
+  parallel: false
+  commands:
+    markdown-format:
+      glob: "*.md"
+      run: npx prettier --write {staged_files}
+      stage_fixed: true
+    
+    markdown-lint:
+      glob: "*.md"
+      run: npx markdownlint-cli2 {staged_files}
+      stage_fixed: true
+
+commit-msg:
+  commands:
+    message-check:
+      run: |
+        if ! grep -qE "^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .+" {1}; then
+          echo "コミットメッセージはConventional Commits形式で記述してください"
+          echo "例: feat: 新機能を追加"
+          echo "    fix: バグを修正"
+          echo "    docs: ドキュメントを更新"
+          exit 1
+        fi
